@@ -65,6 +65,35 @@ def lag_to_angle(lag_samples: float, rate: int = config.CAPTURE_RATE, spacing: f
     return float(np.degrees(np.arcsin(s)))
 
 
+def frame_lags(stereo: np.ndarray, rate: int = config.CAPTURE_RATE, frame: int = config.LOC_FRAME,
+               hop: int = config.LOC_FRAME_HOP, max_frames: int = config.LOC_MAX_FRAMES,
+               max_lag: float | None = None) -> list[tuple[float, float]]:
+    """GCC-PHAT (lag, peak) for the highest-energy frames of an (n, 2) segment.
+
+    Energy gating keeps the frames where the event is loudest (its onset/transient) and ignores
+    the quiet room in between, where the lag would just describe background sources.
+    """
+    x = np.asarray(stereo, dtype=np.float64)
+    if x.ndim != 2 or x.shape[1] < 2 or len(x) < frame:
+        return []
+    ml = max_lag if max_lag is not None else max_lag_samples(rate)
+    starts = np.arange(0, len(x) - frame + 1, hop)
+    energy = np.array([np.sum(x[s:s + frame] ** 2) for s in starts])
+    if not np.any(energy > 0):
+        return []
+    # loudest frames, but only those clearly above the segment's typical level
+    floor = np.median(energy) * 2.0
+    order = [i for i in np.argsort(energy)[::-1] if energy[i] >= floor][:max_frames]
+    if not order:
+        order = list(np.argsort(energy)[::-1][:max(1, max_frames // 2)])
+    win = np.hanning(frame)
+    out = []
+    for i in sorted(order):
+        s = starts[i]
+        out.append(gcc_phat(x[s:s + frame, 0] * win, x[s:s + frame, 1] * win, rate, max_lag=ml))
+    return out
+
+
 def channel_corr(x: np.ndarray, y: np.ndarray) -> float:
     x = np.asarray(x, dtype=np.float64) - np.mean(x)
     y = np.asarray(y, dtype=np.float64) - np.mean(y)

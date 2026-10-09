@@ -4,6 +4,13 @@ Solo build at Hacktoberfest Hack Day Bengaluru (IEEE RIT), track: Healthcare, we
 Hard deadline: working live demo by 18:00 on 2026-10-09. Fresh build: all code written in this repo; never read/copy from other folders.
 Work phase by phase. At the end of each phase: commit + push to origin/main, give exact PowerShell verify commands and expected output, then STOP until the user says "next". Claude cannot hear the mic: anything involving live audio must come with a script the user runs and reports back on.
 
+## Collaboration rules (from the user, 2026-10-09 ~12:00; binding)
+- A teammate builds frontend/, README.md and pitch/ in parallel against a mock server on :8000 that follows the
+  WS contract below. NEVER create or edit files in frontend/, README.md or pitch/.
+- Keep the WS contract below EXACTLY as written. If it must change: stop and ask the user first.
+- FastAPI server runs on port 8000 with exactly the listed endpoints and serves frontend/dist as static files.
+- Always `git pull --rebase` before `git push`.
+
 ## Progress
 - [x] Phase 0 — Setup
 - [~] Phase 1 — Hearing (PANNs live): code + tests done and pushed. Guided run #1 (topk_20261009_111505) was
@@ -19,7 +26,14 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       NEXT: short rerun `--guided --steps FOOTSTEPS,IMPACT,DISTRESS,ALARM --save-wav`, then sweep window 1.0/2.0 x
       gain 0/6/12/20 offline on that WAV and retune.
 
+      Guided run #3 (topk_20261009_115300, full 8 steps, again NO wav): IMPACT HEARD 0.37 (new config), ALARM HEARD
+      0.45 (Beep, bleep 0.71 is the top alarm-ish label but is NOT in ALARM yet - candidate), GLASS HEARD 0.78.
+      FOOTSTEPS loud (+19.8 dB) but heard as Fireworks 0.86 / Chop 0.78 (clip). DISTRESS still Neigh/Horse (clip).
+      KNOCK +11 dB not recognised. CHATTER clean.
+
 ## Localization findings (for calibrate_direction.py / Phase 2)
+- Run #3: LEFT steps FOOTSTEPS +7.1 (sd 0.5), GLASS +7.7 (sd 0.35); RIGHT steps IMPACT -8.0 (sd 0.5), KNOCK -7.0.
+  Strongly confirms raw positive lag = LEFT on this laptop -> default calibration sign maps positive raw lag to LEFT.
 - Run #2 GCC-PHAT loud-hop medians: RIGHT = IMPACT -5.6 (sd 0.4), DISTRESS -6.8, KNOCK -6.2; CENTRE = ALARM -0.7;
   LEFT = FOOTSTEPS +6.0 (but only +2.4 dB over room, may be a background source). So with the current channel order,
   NEGATIVE lag = RIGHT on this laptop (to be confirmed by calibration).
@@ -38,7 +52,14 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
   floor. GPU hides it (TF32 noise). Fixed with a fixed -100 dBFS dither in tagging.prepare (config.TAGGER_DITHER_DBFS).
 - GPU CNN14 ~10 ms per 1 s window in the live loop.
 - PowerShell 5.1 mangles quotes in `python -c "..."`: use script files. Git Bash here has no coreutils.
-- [ ] Phase 2 — Connecting (core logic)
+- [x] Phase 2 — Connecting (core logic): Analyzer/Pipeline, all three sources, calibrate_direction.py, run_pipeline.py.
+      Message semantics within the unchanged contract (tell the frontend teammate):
+      * a `sequence` message is RE-SENT with the same id every time its cluster gains an event (upsert by id);
+        pattern is a template name, "ISOLATED_EVENT" (single event) or "NONE" (unmatched cluster)
+      * events are emitted when they END (or every MAX_EVENT_S = 2 s for long sounds, e.g. walking)
+      * status every 1 s of stream time + after every event; latency_ms = 0.0 until the first event is sent
+      * SIMULATED: no model runs; status.model_device reports "cpu", device "simulated scenario", host_api "none"
+      * angle_deg: + = RIGHT, - = LEFT (after calibration); null when the zone is UNKNOWN for lack of audio
 - [ ] Phase 3 — Serving
 - [ ] Phase 4 — Dashboard
 - [ ] Phase 5 — Proof + fallback

@@ -1,0 +1,92 @@
+"""WebSocket message contract (mirrored by frontend/src/types.ts). Do not change without agreement.
+
+All messages: {type, data}. Every data object carries source, t (s since session start) and wall (ISO time).
+"""
+
+from __future__ import annotations
+
+from typing import Literal
+
+from pydantic import BaseModel
+
+Source = Literal["LIVE", "RECORDED", "SIMULATED"]
+Zone = Literal["LEFT", "CENTRE", "RIGHT", "UNKNOWN"]
+Risk = Literal["GREEN", "AMBER", "RED"]
+
+
+class Base(BaseModel):
+    source: Source
+    t: float
+    wall: str
+
+
+class TopLabel(BaseModel):
+    label: str
+    p: float
+
+
+class FrameData(Base):
+    top: list[TopLabel]
+    categories: dict[str, float]
+    rms_db: list[float]
+
+
+class EventData(Base):
+    id: str
+    t_start: float
+    t_end: float
+    category: str
+    label: str
+    confidence: float
+    zone: Zone
+    angle_deg: float | None
+
+
+class SequenceData(Base):
+    id: str
+    event_ids: list[str]
+    pattern: str
+    risk: Risk
+    explanation: list[str]
+    summary: str
+    trajectory: list[Zone]
+
+
+class StatusData(Base):
+    risk: Risk
+    latency_ms: float              # last measured event latency; 0.0 until the first event is sent
+    device: str
+    host_api: str
+    sample_rate: int
+    channels: int
+    localization: Literal["ON", "OFF"]
+    model_device: Literal["cpu", "cuda"]
+    dropped_blocks: int
+
+
+class FrameMsg(BaseModel):
+    type: Literal["frame"] = "frame"
+    data: FrameData
+
+
+class EventMsg(BaseModel):
+    type: Literal["event"] = "event"
+    data: EventData
+
+
+class SequenceMsg(BaseModel):
+    type: Literal["sequence"] = "sequence"
+    data: SequenceData
+
+
+class StatusMsg(BaseModel):
+    type: Literal["status"] = "status"
+    data: StatusData
+
+
+MESSAGE_TYPES = {"frame": FrameMsg, "event": EventMsg, "sequence": SequenceMsg, "status": StatusMsg}
+
+
+def validate(msg: dict) -> BaseModel:
+    """Parse a {type, data} dict against the contract (raises on any mismatch)."""
+    return MESSAGE_TYPES[msg["type"]].model_validate(msg)

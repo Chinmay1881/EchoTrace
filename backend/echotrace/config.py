@@ -54,18 +54,44 @@ CATEGORY_THRESHOLDS: dict[str, tuple[float, float]] = {
 def thresholds(category: str) -> tuple[float, float]:
     """(on, off) hysteresis thresholds for a category."""
     return CATEGORY_THRESHOLDS.get(category, (ON_THRESHOLD, OFF_THRESHOLD))
+
+
 ON_N, ON_M = 1, 2              # N of the last M windows >= ON to open an event
-OFF_HOPS = 2                   # consecutive windows < OFF to close it
+OFF_HOPS = 1                   # consecutive windows < OFF to close it (events are emitted on close)
+MAX_EVENT_S = 2.0              # a longer sound is emitted in 2 s pieces (keeps latency bounded; walking
+                               # becomes several FOOTSTEPS events, so its trajectory can move)
 
 # ---------------------------------------------------------------- localization
 MIC_SPACING_M = 0.065
 SPEED_OF_SOUND = 343.0
 CENTRE_HALF_ANGLE_DEG = 20.0
 GCC_UPSAMPLE = 8
+# Guided run #3 localized cleanly with this band (LEFT +7, RIGHT -7..-8, sd ~0.5). Above c/2d ~ 2.6 kHz a
+# narrowband source can alias inside +/-9 samples; lower the top edge if calibration shows flipped glass/alarms.
 GCC_BAND_HZ = (300.0, 8_000.0)
+LOC_FRAME = 1024               # ~21 ms GCC-PHAT frames
+LOC_FRAME_HOP = 512
+LOC_MAX_FRAMES = 12            # highest-energy frames near the onset that get a vote
+LOC_PRE_S = 0.5                # audio before t_start included in the search
+LOC_MAX_SPAN_S = 2.5
+LOC_MIN_VOTE = 0.5             # winning zone needs at least this share of the (peak-weighted) votes
+LOC_MIN_PEAK = 0.10            # mean GCC-PHAT peak of the winning frames; below -> UNKNOWN
+LOC_CHECK_EVERY_S = 5.0        # how often the channels are re-checked for being identical (-> localization OFF)
+AUDIO_RING_S = 15.0            # raw stereo kept in memory for localization (never written to disk)
+# Without a calibration file: guided runs #2/#3 showed raw positive lag (right channel later) = LEFT.
+# Corrected lag = sign * (raw - offset); corrected positive = RIGHT. calibrate_direction.py overwrites this.
+DEFAULT_CAL_SIGN = -1
+DEFAULT_CAL_OFFSET = 0.0
 
-# ---------------------------------------------------------------- correlation
-LINK_WINDOW_S = 8.0
+# ---------------------------------------------------------------- correlation / risk
+LINK_WINDOW_S = 8.0            # events closer than this (end -> start) belong to the same sequence
+PATTERN_MAX_GAP_S = 8.0        # max gap between consecutive steps of a pattern
+RISK_DECAY_S = 20.0            # quiet time after a sequence's last event before its risk stops counting
+CONCERNING = ["IMPACT", "DISTRESS", "ALARM", "GLASS"]   # the baseline alerts on any single one of these
+
+# ---------------------------------------------------------------- pipeline
+STATUS_EVERY_S = 1.0
+MAX_BACKLOG_S = 1.0            # if analysis falls this far behind, skip stale windows (reported as dropped)
 
 # ---------------------------------------------------------------- categories (AudioSet display names)
 CATEGORIES: dict[str, list[str]] = {

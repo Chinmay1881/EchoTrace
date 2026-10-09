@@ -1,0 +1,107 @@
+run      : 20261009_115300  device [11] Microphone Array 2 () (Windows WDM-KS)  model cuda  window 1.00 s  hop 0.50 s  gain +20.0 dB  raw audio not saved
+steps    : BACKGROUND, FOOTSTEPS, IMPACT, DISTRESS, ALARM, GLASS, KNOCK, CHATTER
+==============================================================================
+SUMMARY  (250 hops counted, on-thresholds FOOT 0.30  IMP 0.20  DIST 0.30  ALARM 0.30  GLASS 0.30  DOOR 0.30)
+------------------------------------------------------------------------------
+category       max   mean  hops>=thr
+FOOTSTEPS     0.08  0.006          0
+IMPACT        0.78  0.033          9
+DISTRESS      0.04  0.001          0
+ALARM         0.45  0.017          3
+GLASS         0.78  0.030         10
+DOOR          0.10  0.006          0
+------------------------------------------------------------------------------
+Top 10 labels overall (by max probability):
+  Speech                                   max 0.90  mean 0.351
+  Music                                    max 0.90  mean 0.092
+  Fireworks                                max 0.86  mean 0.051
+  Chop                                     max 0.78  mean 0.029
+  Glass                                    max 0.78  mean 0.027
+  Arrow                                    max 0.77  mean 0.024
+  Beep, bleep                              max 0.71  mean 0.029
+  Breaking                                 max 0.68  mean 0.016
+  Neigh, whinny                            max 0.68  mean 0.009
+  Firecracker                              max 0.66  mean 0.028
+------------------------------------------------------------------------------
+Per-step breakdown
+
+[BACKGROUND] 40 hops, expect nothing, sound at -
+  other categories >= thr: none
+  category max: FOOT 0.03  IMP 0.03  DIST 0.00  ALARM 0.00  GLASS 0.00  DOOR 0.01
+  top labels:   Speech 0.78 | Vehicle 0.51 | Music 0.44 | Train 0.22 | Animal 0.15
+  level: median -50.7 dBFS, loudest-quarter -49.7 dBFS (+1.0 dB vs background)
+  channels: corr all +0.965  loud +0.972
+  GCC-PHAT lag (samples, + = right ch. later): all median -5.60 (sd 5.10)  loud median -5.92 (sd 4.18, values -6.1, +7.9, -5.9, -5.8, -6.3, -6.3)  peak 0.20  ~-41 deg
+
+[FOOTSTEPS] 30 hops, expect FOOTSTEPS, sound at LEFT
+  verdict: LOUD BUT NOT RECOGNISED - FOOTSTEPS 0.00 (+19.8 dB vs background).  Heard: Fireworks 0.86, Chop 0.78, Firecracker 0.66
+  FOOTSTEPS: max 0.00  mean 0.001  hops>=thr 0/30  -> MISSED
+  other categories >= thr: IMPACT 0.78 (6 hops)
+  category max: FOOT 0.00  IMP 0.78  DIST 0.00  ALARM 0.00  GLASS 0.04  DOOR 0.01
+  top labels:   Fireworks 0.86 | Chop 0.78 | Firecracker 0.66 | Speech 0.25 | Arrow 0.25
+  level: median -37.0 dBFS, loudest-quarter -30.9 dBFS (+19.8 dB vs background)
+  channels: corr all +0.591  loud +0.600
+  GCC-PHAT lag (samples, + = right ch. later): all median +7.21 (sd 2.52)  loud median +7.11 (sd 0.50, values +6.5, +6.3, +7.6, +7.1, +7.2, +7.0)  peak 0.69  ~+51 deg
+
+[IMPACT] 30 hops, expect IMPACT, sound at RIGHT
+  verdict: HEARD - IMPACT 0.37  (+12.0 dB vs background)
+  IMPACT: max 0.37  mean 0.080  hops>=thr 3/30  -> OK
+  other categories >= thr: none
+  category max: FOOT 0.08  IMP 0.37  DIST 0.00  ALARM 0.00  GLASS 0.02  DOOR 0.10
+  top labels:   Speech 0.85 | Arrow 0.77 | Basketball bounce 0.62 | Music 0.50 | Vehicle 0.50
+  level: median -44.8 dBFS, loudest-quarter -38.7 dBFS (+12.0 dB vs background)
+  channels: corr all +0.870  loud +0.772
+  GCC-PHAT lag (samples, + = right ch. later): all median -7.22 (sd 4.83)  loud median -8.05 (sd 0.48, values -8.4, -8.0, -8.6, -8.8, -7.7, -7.4)  peak 0.52  ~-62 deg
+
+[DISTRESS] 30 hops, expect DISTRESS, sound at RIGHT
+  verdict: TOO QUIET - DISTRESS only 0.04, sound +4.7 dB vs background (want >= +10 dB): louder / closer.  Heard: Speech 0.86, Neigh, whinny 0.68, Horse 0.56
+  DISTRESS: max 0.04  mean 0.004  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.01  DIST 0.04  ALARM 0.00  GLASS 0.01  DOOR 0.01
+  top labels:   Speech 0.86 | Neigh, whinny 0.68 | Horse 0.56 | Animal 0.52 | Music 0.47
+  level: median -50.0 dBFS, loudest-quarter -46.0 dBFS (+4.7 dB vs background)
+  channels: corr all +0.698  loud +0.379
+  GCC-PHAT lag (samples, + = right ch. later): all median -3.97 (sd 4.91)  loud median +2.37 (sd 5.49, values +7.5, +7.5, +2.1, +2.4, -6.6, +3.1)  peak 0.45  ~+15 deg
+
+[ALARM] 30 hops, expect ALARM, sound at CENTRE
+  verdict: HEARD - ALARM 0.45  (+20.4 dB vs background)
+  ALARM: max 0.45  mean 0.138  hops>=thr 3/30  -> OK
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.01  DIST 0.00  ALARM 0.45  GLASS 0.01  DOOR 0.01
+  top labels:   Music 0.90 | Speech 0.73 | Beep, bleep 0.71 | Musical instrument 0.46 | Buzzer 0.45
+  level: median -34.6 dBFS, loudest-quarter -30.3 dBFS (+20.4 dB vs background)
+  channels: corr all +0.860  loud +0.837
+  GCC-PHAT lag (samples, + = right ch. later): all median +1.19 (sd 3.94)  loud median +2.70 (sd 2.24, values +2.7, +1.1, +0.3, +6.8, +5.5, +1.3)  peak 0.46  ~+17 deg
+
+[GLASS] 30 hops, expect GLASS, sound at LEFT
+  verdict: HEARD - GLASS 0.78  (+16.0 dB vs background)
+  GLASS: max 0.78  mean 0.213  hops>=thr 10/30  -> OK
+  other categories >= thr: none
+  category max: FOOT 0.01  IMP 0.04  DIST 0.00  ALARM 0.01  GLASS 0.78  DOOR 0.05
+  top labels:   Glass 0.78 | Speech 0.73 | Breaking 0.68 | Music 0.64 | Chink, clink 0.61
+  level: median -51.6 dBFS, loudest-quarter -34.6 dBFS (+16.0 dB vs background)
+  channels: corr all +0.488  loud -0.109
+  GCC-PHAT lag (samples, + = right ch. later): all median +7.14 (sd 5.30)  loud median +7.65 (sd 0.35, values +7.7, +7.7, +7.6, +7.8, +7.6, +7.7)  peak 0.85  ~+57 deg
+
+[KNOCK] 20 hops, expect IMPACT, sound at RIGHT
+  verdict: LOUD BUT NOT RECOGNISED - IMPACT 0.10 (+11.1 dB vs background).  Heard: Speech 0.87, Music 0.55, Fireworks 0.40
+  IMPACT: max 0.10  mean 0.029  hops>=thr 0/20  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.10  DIST 0.00  ALARM 0.00  GLASS 0.04  DOOR 0.03
+  top labels:   Speech 0.87 | Music 0.55 | Fireworks 0.40 | Arrow 0.39 | Dishes, pots, and pans 0.35
+  level: median -46.7 dBFS, loudest-quarter -39.5 dBFS (+11.1 dB vs background)
+  channels: corr all +0.862  loud +0.647
+  GCC-PHAT lag (samples, + = right ch. later): all median -0.16 (sd 3.89)  loud median -7.01 (sd 2.70, values -7.0, -7.0, -6.9, -0.8, -8.6)  peak 0.64  ~-50 deg
+
+[CHATTER] 40 hops, expect nothing, sound at CENTRE
+  verdict: OK - nothing triggered  (+12.1 dB vs background)
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.02  DIST 0.00  ALARM 0.00  GLASS 0.01  DOOR 0.02
+  top labels:   Speech 0.90 | Finger snapping 0.58 | Music 0.56 | Mantra 0.39 | Male speech, man speaking 0.27
+  level: median -42.4 dBFS, loudest-quarter -38.5 dBFS (+12.1 dB vs background)
+  channels: corr all +0.910  loud +0.927
+  GCC-PHAT lag (samples, + = right ch. later): all median -0.09 (sd 1.69)  loud median -2.64 (sd 1.96, values -2.7, -2.7, +1.1, -2.6, -3.7, -3.3)  peak 0.53  ~-17 deg
+
+Lag guide: physical max is +/-9.1 samples; |lag| < ~3.1 is CENTRE. The sign for LEFT/RIGHT
+is fixed later by calibrate_direction.py - here, check LEFT and RIGHT steps have opposite signs.
+==============================================================================
