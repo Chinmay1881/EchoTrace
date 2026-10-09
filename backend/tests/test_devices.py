@@ -60,4 +60,4 @@ def test_channel_report_identical_vs_distinct():
     delayed = np.stack([s, np.roll(s, 5)], axis=1) + 0.3 * rng.standard_normal((48000, 2)).astype(np.float32)
     rep = dv.channel_report(delayed)
     assert not rep.identical
-    assert rep.lag_samples == -5
+    assert rep.lag_samples == 5   # right channel delayed by 5 samples

@@ -136,7 +136,8 @@ def channel_report(x: np.ndarray, max_lag: int = 20) -> ChannelReport:
             v = np.dot(l0[: n + lag], r0[-lag:])
         if v > best:
             best, best_lag = v, lag
-    return ChannelReport(corr, best_lag, float(np.max(np.abs(left - right))), rms)  # type: ignore[arg-type]
+    # report as "right lags left by N samples" (same sign convention as localization.gcc_phat)
+    return ChannelReport(corr, -best_lag, float(np.max(np.abs(left - right))), rms)  # type: ignore[arg-type]
 
 
 def probe(dev_index: int, seconds: float = 1.5, rate: int = config.CAPTURE_RATE) -> ChannelReport:

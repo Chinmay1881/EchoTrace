@@ -6,7 +6,17 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
 
 ## Progress
 - [x] Phase 0 — Setup
-- [ ] Phase 1 — Hearing (PANNs live)
+- [~] Phase 1 — Hearing (PANNs live): code + tests done and pushed; WAITING for the user's guided run
+      (`live_topk.py --guided`), then tune CATEGORIES / thresholds / TAGGER_GAIN_DB from recordings/topk_*.csv
+
+## Findings so far
+- WDM-KS "Microphone Array 2" index moves (17 -> 11 within an hour): always resolve by name.
+- Quiet-ish room channel corr ~0.92 (not 0.73); a steady talker gave a stable GCC-PHAT lag (~-6 samples, sd 0.1-0.3),
+  so real sources do separate the channels.
+- CPU CNN14 returns garbage for digitally perfect input (pure tones / exact silence): log-mel hits its -100 dB amin
+  floor. GPU hides it (TF32 noise). Fixed with a fixed -100 dBFS dither in tagging.prepare (config.TAGGER_DITHER_DBFS).
+- GPU CNN14 ~10 ms per 1 s window in the live loop.
+- PowerShell 5.1 mangles quotes in `python -c "..."`: use script files. Git Bash here has no coreutils.
 - [ ] Phase 2 — Connecting (core logic)
 - [ ] Phase 3 — Serving
 - [ ] Phase 4 — Dashboard

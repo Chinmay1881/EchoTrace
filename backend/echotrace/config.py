@@ -37,6 +37,7 @@ MODEL_RATE = 32_000
 WINDOW_S = 1.0                 # configurable to 2.0
 HOP_S = 0.5
 TAGGER_GAIN_DB = 20.0          # applied before tagging only (quiet room ~ -56 dBFS); tuned in Phase 1
+TAGGER_DITHER_DBFS = -100.0    # fixed tiny noise floor so digital silence/pure tones stay in-distribution
 TOP_K = 5
 
 # ---------------------------------------------------------------- detection (hysteresis)
