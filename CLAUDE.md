@@ -73,7 +73,16 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
         sd 7.7/6.6 would fail the new checks -> recalibrate.
       * SimSource scenarios: demo | breakin | all (default all = 120 s loop); run_pipeline.py writes
         recordings/run_*_events.jsonl (metadata only) for future fixtures
-- [ ] Phase 3 — Serving
+- [x] Phase 3 — Serving: api/server.py (Engine + create_app), scripts/serve.py (one command), scripts/ws_print.py.
+      REST shapes match the teammate's frontend/mock/mock-server.mjs: /api/status = status data (+ extras mode,
+      error, tagger, running, clients, calibration); /api/mode GET/POST -> {source,t,wall,device,file,scenario};
+      POST body {source, device?, file?, scenario?}; /api/events = plain array; /api/reset -> {..meta, ok:true};
+      /api/metrics = docs/metrics.json or {}; errors {"error": ...} (400 bad input, 409 device failure -> stays on
+      previous mode, 503 CNN14 unavailable); CORS *. WS sends a snapshot on connect (status, last 50 events,
+      current sequences). Ids are prefixed per mode session ("m2-e1", "m2-s1"). / serves frontend/dist (SPA
+      fallback, picked up without restart) or a placeholder. Startup: LIVE by default, falls back to SIMULATED
+      (labelled, error shown in /api/status) if the mic can't open.
+      OPEN QUESTION for the user/teammate: the mock uses angle_deg + = LEFT; the backend uses + = RIGHT.
 - [ ] Phase 4 — Dashboard
 - [ ] Phase 5 — Proof + fallback
 - [ ] Phase 6 — Open-source polish

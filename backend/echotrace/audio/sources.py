@@ -55,6 +55,8 @@ class LiveMicSource:
 
     def start(self) -> "LiveMicSource":
         import sounddevice as sd
+        if self.stream is not None:          # idempotent: the server opens the device early to report errors
+            return self
         try:
             self.stream = sd.InputStream(device=self.dev.index, samplerate=self.rate, channels=self.channels,
                                          dtype="float32", blocksize=self.block, callback=self._callback)
@@ -154,6 +156,8 @@ class WavReplaySource:
         self._done = True
 
     def start(self) -> "WavReplaySource":
+        if self._thread is not None and self._thread.is_alive():
+            return self
         self._stop.clear()
         self._done = False
         if self.realtime:
@@ -254,6 +258,8 @@ class SimSource:
         return self._done
 
     def start(self) -> "SimSource":
+        if self._running:
+            return self
         self.t0, self.n, self._running, self._done = time.monotonic(), 0, True, False
         return self
 

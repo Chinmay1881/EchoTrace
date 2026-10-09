@@ -66,8 +66,11 @@ class AudioRing:
 class Analyzer:
     def __init__(self, info: SourceInfo, tagger=None, model_device: str | None = None,
                  localizer: ZoneLocalizer | None = None, start_wall: datetime | None = None,
-                 window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S):
+                 window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S, id_prefix: str = ""):
         self.info = info
+        self.id_prefix = id_prefix           # e.g. "m2-" so ids stay unique across source switches
+        self._n_events = 0                   # survive reset, so ids are never reused within a session
+        self._n_clusters = 0
         self.source = info.source
         self.tagger = tagger
         self.cmap = CategoryMap(tagger.labels) if tagger is not None else None
@@ -85,7 +88,10 @@ class Analyzer:
 
     def reset_state(self) -> None:
         self.debouncer = Debouncer(list(config.CATEGORIES), self.hop_s)
+        old_graph = getattr(self, "graph", None)
         self.graph = EventGraph()
+        if old_graph is not None:
+            self.graph._n = old_graph._n
         self.risk = RiskEngine()
         self.baseline = BaselineAlerter()
         self.events: list[Event] = []
@@ -97,9 +103,9 @@ class Analyzer:
         self.latencies: list[float] = []
         self.last_latency = 0.0
         self.dropped_extra = 0
-        self.t = 0.0
+        self.t = getattr(self, "t", 0.0)         # stream time keeps running across a reset
         self._last_status = -1e9
-        self.last_frame: dict | None = None
+        self.last_frame: dict | None = getattr(self, "last_frame", None)
 
     # ----------------------------------------------------------------- helpers
     def wall(self, t: float) -> str:
@@ -200,7 +206,8 @@ class Analyzer:
 
     def _on_event(self, raw: RawEvent) -> list[Out]:
         loc = self._localize(raw)
-        ev = Event(f"e{len(self.events) + 1}", raw.t_start, raw.t_end, raw.category, raw.label,
+        self._n_events += 1
+        ev = Event(f"{self.id_prefix}e{self._n_events}", raw.t_start, raw.t_end, raw.category, raw.label,
                    round(float(raw.confidence), 3), loc.zone, loc.angle_deg, self.wall(raw.t_start),
                    raw.capture_time)
         return self.add_event(ev)
@@ -213,14 +220,15 @@ class Analyzer:
         self.events.append(ev)
         self.baseline.observe(ev)
         cluster = self.graph.add(ev)
+        sid = f"{self.id_prefix}{cluster.id}"
         m = match(cluster.events)
         new_risk = m.pattern.risk if m else "GREEN"
-        prev = self.fired.get(cluster.id)
+        prev = self.fired.get(sid)
         if m and (prev is None or RISK_ORDER[new_risk] > RISK_ORDER[prev[0]]):
             # escalation: alert once, at the event that completed the pattern
             prev = (new_risk, m.pattern.name, m.completed_by.id, len(cluster.events))
-            self.fired[cluster.id] = prev
-            self.alerts.append({"sequence_id": cluster.id, "risk": new_risk, "pattern": m.pattern.name,
+            self.fired[sid] = prev
+            self.alerts.append({"sequence_id": sid, "risk": new_risk, "pattern": m.pattern.name,
                                 "event_id": m.completed_by.id, "t": self.t, "wall": self.wall(self.t)})
         if prev is not None:                     # a sequence never silently downgrades; repeats don't re-alert
             risk, pattern, fired_at, n_at = prev
@@ -231,10 +239,10 @@ class Analyzer:
             risk, fired_at, later = "GREEN", None, 0
             pattern = "ISOLATED_EVENT" if len(cluster.events) == 1 else "NONE"
         traj = cluster.trajectory()
-        self.risk.update(cluster.id, risk, cluster.last_t)
+        self.risk.update(sid, risk, cluster.last_t)
         seq = {"type": "sequence", "data": {
             **self._base(self.t),
-            "id": cluster.id,
+            "id": sid,
             "event_ids": [e.id for e in sorted(cluster.events, key=lambda e: e.t_start)],
             "pattern": pattern,
             "risk": risk,
@@ -242,7 +250,7 @@ class Analyzer:
             "summary": summarize(cluster.events, risk, m),
             "trajectory": traj,
         }}
-        self.sequences[cluster.id] = seq
+        self.sequences[sid] = seq
         event = {"type": "event", "data": {
             **self._base(self.t),
             "id": ev.id, "t_start": ev.t_start, "t_end": ev.t_end, "category": ev.category, "label": ev.label,
@@ -255,17 +263,23 @@ class Pipeline:
     """Runs a source through an Analyzer on a worker thread. emit(msg, capture_time) gets every message."""
 
     def __init__(self, source, tagger=None, emit: Emit | None = None, model_device: str | None = None,
-                 start_wall: datetime | None = None, window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S):
+                 start_wall: datetime | None = None, window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S,
+                 id_prefix: str = ""):
         self.source = source
         self.analyzer = Analyzer(source.info, tagger, model_device, start_wall=start_wall,
-                                 window_s=window_s, hop_s=hop_s)
+                                 window_s=window_s, hop_s=hop_s, id_prefix=id_prefix)
         self.rw = RollingWindow(source.info.sample_rate, window_s, hop_s)
         self.emit = emit or self._record_emit
         self.messages: list[dict] = []
         self.keep_messages = emit is None
         self._thread: threading.Thread | None = None
         self._running = False
+        self._reset_requested = threading.Event()
         self.error: str | None = None
+
+    def request_reset(self) -> None:
+        """Thread-safe: clear events/sequences/risk at the next step (the source keeps running)."""
+        self._reset_requested.set()
 
     def _record_emit(self, msg: dict, capture: float | None) -> None:
         if capture is not None and msg["type"] == "event":
@@ -285,6 +299,10 @@ class Pipeline:
 
     def step(self, timeout: float = 0.2) -> bool:
         """Process one source item. Returns False when a finite source is exhausted."""
+        if self._reset_requested.is_set():
+            self._reset_requested.clear()
+            self.analyzer.reset_state()
+            self.emit(self.analyzer.status(self.analyzer.t, self.dropped_blocks), None)
         item = self.source.get(timeout=timeout)
         if item is None:
             if self.source.finished:
