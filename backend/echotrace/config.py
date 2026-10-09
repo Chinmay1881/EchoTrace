@@ -59,7 +59,7 @@ SENSITIVITY_PROFILES: dict[str, dict] = {
     "normal": {"default": (ON_THRESHOLD, OFF_THRESHOLD), "thresholds": dict(CATEGORY_THRESHOLDS),
                "gain_db_delta": 0.0},
     "high": {"default": (0.20, 0.10),
-             "thresholds": {"IMPACT": (0.12, 0.06)},
+             "thresholds": {"IMPACT": (0.12, 0.06), "DOOR": (0.08, 0.04)},
              "gain_db_delta": 0.0},
 }
 

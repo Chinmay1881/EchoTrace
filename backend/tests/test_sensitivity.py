@@ -10,9 +10,10 @@ from echotrace.schemas import validate
 def test_profiles():
     assert config.thresholds("GLASS", "normal") == (0.30, 0.15)
     assert config.thresholds("IMPACT", "normal") == (0.20, 0.10)
-    for cat in ("GLASS", "ALARM", "FOOTSTEPS", "DISTRESS", "DOOR"):
+    for cat in ("GLASS", "ALARM", "FOOTSTEPS", "DISTRESS"):
         assert config.thresholds(cat, "high") == (0.20, 0.10)
     assert config.thresholds("IMPACT", "high") == (0.12, 0.06)
+    assert config.thresholds("DOOR", "high") == (0.08, 0.04)
     for mode in config.SENSITIVITY_PROFILES:
         for cat in config.CATEGORIES:
             on, off = config.thresholds(cat, mode)
