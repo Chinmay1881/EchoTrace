@@ -11,6 +11,16 @@ export const CATEGORY_COLOR: Record<string, string> = {
   DOOR: "#a1c4a5",
 };
 
+// Event (on) thresholds - mirror backend/echotrace/config.py (ON_THRESHOLD 0.30, CATEGORY_THRESHOLDS IMPACT 0.20).
+export const CATEGORY_THRESHOLD: Record<string, number> = {
+  FOOTSTEPS: 0.3,
+  IMPACT: 0.2,
+  DISTRESS: 0.3,
+  ALARM: 0.3,
+  GLASS: 0.3,
+  DOOR: 0.3,
+};
+
 export const CATEGORY_NAME: Record<string, string> = {
   FOOTSTEPS: "Footsteps",
   IMPACT: "Impact",

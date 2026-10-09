@@ -88,6 +88,10 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       SequencePanel (+detail), Timeline, LiveMeters, MetricsPanel. `npm run build` -> frontend/dist (gitignored;
       a fresh clone must build once). Dev: `npm run dev` on :5173 proxies /api + /ws to 127.0.0.1:8000.
       Verified by screenshots via Edge DevTools protocol at 1366x768 and 1920x1080 (no page scroll).
+      13:40 "no events in LIVE dashboard" report: NOT reproducible - serve.py LIVE + dashboard rendered events from
+      a speaker beep (ALARM 0.41-0.56, latency ~31 ms). Added a category-score strip (score, 4 s peak, threshold) to
+      LiveMeters so sub-threshold sounds are visible. frontend/src/labels.ts CATEGORY_THRESHOLD mirrors config.py -
+      keep them in sync. C: drive was FULL (0 GB free; ~7 GB in pip/npm caches the user can purge).
 - [ ] Phase 5 — Proof + fallback
 - [ ] Phase 6 — Open-source polish
 
