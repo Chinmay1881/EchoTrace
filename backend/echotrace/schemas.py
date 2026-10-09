@@ -84,6 +84,37 @@ class StatusMsg(BaseModel):
     data: StatusData
 
 
+# --------------------------------------------------------------------------- GET /api/metrics
+# docs/metrics.json is written by Person C's eval and served AS-IS ({} when missing). This model documents
+# and checks the agreed shape; the server does not rewrite the file.
+class FalseAlerts(BaseModel):
+    echotrace: int
+    baseline: int
+    reduction_pct: float
+
+
+class LatencyStats(BaseModel):
+    mean: float
+    p95: float
+
+
+class ClipResult(BaseModel):
+    clip: str
+    expected: str
+    got: str
+    ok: bool
+
+
+class Metrics(BaseModel):
+    generated_at: str
+    clips: int
+    sequence_accuracy: float
+    false_alerts: FalseAlerts
+    lcr_accuracy: float
+    latency_ms: LatencyStats
+    per_clip: list[ClipResult]
+
+
 MESSAGE_TYPES = {"frame": FrameMsg, "event": EventMsg, "sequence": SequenceMsg, "status": StatusMsg}
 
 

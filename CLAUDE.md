@@ -173,6 +173,27 @@ All messages `{type, data}`. Every data has `source` ("LIVE"|"RECORDED"|"SIMULAT
 - status: `{risk, latency_ms, device, host_api, sample_rate, channels, localization:"ON"|"OFF", model_device:"cpu"|"cuda", dropped_blocks}`
 latency_ms = capture of the audio block that triggered the event -> WS send time.
 
+GET /api/metrics returns docs/metrics.json AS-IS (no rewriting; extra keys pass through), or {} if missing
+(invalid JSON -> {"error": ...}). docs/metrics.json is written by Person C's eval in this shape
+(Pydantic `Metrics` in schemas.py; TS type in frontend should mirror it):
+```
+{"generated_at": str (ISO), "clips": int (number of clips),
+ "sequence_accuracy": float, "false_alerts": {"echotrace": int, "baseline": int, "reduction_pct": float},
+ "lcr_accuracy": float, "latency_ms": {"mean": float, "p95": float},
+ "per_clip": [{"clip": str, "expected": str, "got": str, "ok": bool}]}
+```
+
+## Ownership (from the user)
+- Person B (teammate): frontend/, README.md. Person C: backend/echotrace/eval/, backend/scripts/eval.py, docs/.
+  pitch/ is not ours either. Never create or edit files there.
+- Offline entry point for eval: `echotrace.pipeline.run_wav(path, tagger=None, *, force_cpu=False,
+  calibration=None, start_wall=None, keep_frames=True) -> list[dict]` (all WS messages, source RECORDED,
+  faster than real time, deterministic, latency not measured) and `run_wav_detailed(...) -> (messages, analyzer)`
+  (analyzer.events / .alerts = EchoTrace alerts, one per escalation / .baseline.alerts / .sequences).
+  CNN14 is cached per process (`default_tagger()`).
+- Eval data: recordings/eval/*.wav is committed (exception to the *.wav ignore); recordings/eval/labels/*.json too.
+- All capture/latency timestamps use time.perf_counter() (time.monotonic() ticks every ~15.6 ms on Windows).
+
 ## Phases
 **PHASE 0 — Setup**: scaffold, requirements.txt, .gitignore, MIT LICENSE, CLAUDE.md, venv (py -3.12). download_weights.py (detect existing; --check), list_devices.py (WDM-KS first; mark 48k x 2ch; hide loopbacks; check channels distinct). Commit + push.
 

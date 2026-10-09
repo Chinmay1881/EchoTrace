@@ -162,6 +162,28 @@ def test_wav_replay_localizes_event(tmp_path, monkeypatch, raw_lag, zone):
 
 
 @needs_labels
+def test_offline_run_wav_for_eval(tmp_path):
+    import time
+    from echotrace.localization.zones import Calibration
+    from echotrace.pipeline import run_wav, run_wav_detailed
+    path = tmp_path / "clip.wav"
+    write_clip(path, -7.0)                                          # 4 s file, RIGHT
+    t0 = time.monotonic()
+    msgs = run_wav(path, FakeTagger(), calibration=Calibration(-1, 0.0))
+    assert time.monotonic() - t0 < 2.0                              # faster than real time
+    for m in msgs:
+        validate(m)
+        assert m["data"]["source"] == "RECORDED"
+    assert {m["type"] for m in msgs} == {"frame", "event", "sequence", "status"}
+    msgs2, an = run_wav_detailed(path, FakeTagger(), calibration=Calibration(-1, 0.0), keep_frames=False)
+    assert "frame" not in {m["type"] for m in msgs2}
+    assert [e.zone for e in an.events] == ["RIGHT"]
+    assert len(an.baseline.alerts) == 1 and an.alerts == []          # isolated impact: baseline alerts, EchoTrace not
+    # deterministic: same input -> same messages
+    assert run_wav(path, FakeTagger(), calibration=Calibration(-1, 0.0)) == msgs
+
+
+@needs_labels
 def test_mono_wav_turns_localization_off(tmp_path):
     path = tmp_path / "mono.wav"
     write_clip(path, 0.0, mono=True)

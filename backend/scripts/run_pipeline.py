@@ -65,7 +65,7 @@ def main() -> None:
             log.write(json.dumps(msg) + "\n")
             log.flush()
         if capture is not None and msg["type"] == "event":
-            p.analyzer.record_latency((time.monotonic() - capture) * 1000)
+            p.analyzer.record_latency((time.perf_counter() - capture) * 1000)
         d = msg["data"]
         k = msg["type"]
         if k == "frame" and args.frames:

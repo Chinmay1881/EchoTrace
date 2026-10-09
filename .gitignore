@@ -16,6 +16,8 @@ frontend/dist/
 # Audio: large recordings stay local; small demo clips are force-added explicitly
 *.wav
 *.flac
+# ...except the labelled evaluation clips (keep them short: 48 kHz stereo 24-bit is ~290 KB/s)
+!recordings/eval/*.wav
 recordings/topk_*.csv
 recordings/run_*_events.jsonl
 

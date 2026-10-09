@@ -49,7 +49,7 @@ class LiveMicSource:
         if status and status.input_overflow:
             self.overflows += 1
         try:
-            self.q.put_nowait((indata.copy(), time.monotonic()))
+            self.q.put_nowait((indata.copy(), time.perf_counter()))
         except queue.Full:
             self.dropped_blocks += 1
 
@@ -139,18 +139,18 @@ class WavReplaySource:
         return b
 
     def _pace(self) -> None:
-        t0, n = time.monotonic(), 0
+        t0, n = time.perf_counter(), 0
         while not self._stop.is_set():
             b = self._next_block()
             if b is None:
                 break
             due = t0 + n * self.block / self.rate
-            delay = due - time.monotonic()
+            delay = due - time.perf_counter()
             if delay > 0:
                 time.sleep(delay)
             n += 1
             try:
-                self.q.put_nowait((b, time.monotonic()))
+                self.q.put_nowait((b, time.perf_counter()))
             except queue.Full:
                 self.dropped_blocks += 1
         self._done = True
@@ -177,7 +177,7 @@ class WavReplaySource:
             if b is None:
                 self._done = True
                 return None
-            return b, time.monotonic()
+            return b, time.perf_counter()
         try:
             return self.q.get(timeout=timeout)
         except queue.Empty:
@@ -260,7 +260,7 @@ class SimSource:
     def start(self) -> "SimSource":
         if self._running:
             return self
-        self.t0, self.n, self._running, self._done = time.monotonic(), 0, True, False
+        self.t0, self.n, self._running, self._done = time.perf_counter(), 0, True, False
         return self
 
     def stop(self) -> None:
@@ -284,7 +284,7 @@ class SimSource:
         base = -52.0 + 30.0 * level
         tilt = 0.0 if angle is None else angle / 15.0          # louder on the side the sound is on
         rms = (round(base - tilt + float(self.rng.uniform(-1, 1)), 1), round(base + tilt + float(self.rng.uniform(-1, 1)), 1))
-        return SimHop(round(t, 3), time.monotonic(), cats, labels, top, rms, angle)
+        return SimHop(round(t, 3), time.perf_counter(), cats, labels, top, rms, angle)
 
     def get(self, timeout: float = 1.0) -> SimHop | None:
         if not self._running:
@@ -294,7 +294,7 @@ class SimSource:
             self._done = True
             return None
         if self.realtime:
-            delay = self.t0 + t - time.monotonic()
+            delay = self.t0 + t - time.perf_counter()
             if delay > timeout:
                 time.sleep(timeout)
                 return None

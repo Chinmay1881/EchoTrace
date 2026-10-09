@@ -183,10 +183,12 @@ class Engine:
             if gen != self.generation:
                 continue                               # stale message from a source we switched away from
             text = json.dumps(msg)
+            # latency = capture -> WS send; recorded as the send starts, so a client that has the event
+            # never sees a status/REST answer that predates it
+            if capture is not None and msg["type"] == "event" and self.pipeline is not None:
+                self.pipeline.analyzer.record_latency((time.perf_counter() - capture) * 1000)
             if self.clients:
                 await asyncio.gather(*(self._send(ws, text) for ws in list(self.clients)))
-            if capture is not None and msg["type"] == "event" and self.pipeline is not None:
-                self.pipeline.analyzer.record_latency((time.monotonic() - capture) * 1000)
 
     async def _send(self, ws: WebSocket, text: str) -> None:
         try:

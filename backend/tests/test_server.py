@@ -127,6 +127,30 @@ def test_switch_back_to_simulated_changes_labels(client, tmp_path):
         assert all(m["data"]["source"] == "SIMULATED" for m in msgs)
 
 
+SAMPLE_METRICS = {
+    "generated_at": "2026-10-09T15:00:00",
+    "clips": 6,
+    "sequence_accuracy": 0.83,
+    "false_alerts": {"echotrace": 1, "baseline": 9, "reduction_pct": 88.9},
+    "lcr_accuracy": 0.78,
+    "latency_ms": {"mean": 96.0, "p95": 172.0},
+    "per_clip": [{"clip": "demo_1.wav", "expected": "MOVEMENT_IMPACT_DISTRESS", "got": "MOVEMENT_IMPACT_DISTRESS",
+                  "ok": True}],
+    "extra_key_from_eval": "kept as-is",
+}
+
+
+def test_metrics_served_as_is(client, tmp_path, monkeypatch):
+    import json
+    from echotrace.schemas import Metrics
+    monkeypatch.setattr(config, "DOCS_DIR", tmp_path)              # never touch the real docs/
+    assert client.get("/api/metrics").json() == {}                # missing -> {}
+    (tmp_path / "metrics.json").write_text(json.dumps(SAMPLE_METRICS), encoding="utf-8")
+    got = client.get("/api/metrics").json()
+    assert got == SAMPLE_METRICS                                  # exactly as written, extra keys included
+    Metrics.model_validate(got)                                   # and it matches the agreed shape
+
+
 def test_metrics_and_root(client):
     assert isinstance(client.get("/api/metrics").json(), dict)
     r = client.get("/")

@@ -159,7 +159,7 @@ class Analyzer:
     def flush(self, dropped_blocks: int = 0) -> list[Out]:
         """End of a finite source: close open events."""
         out: list[Out] = []
-        for raw in self.debouncer.flush(time.monotonic()):
+        for raw in self.debouncer.flush(time.perf_counter()):
             out += self._on_event(raw)
         out.append((self.status(self.t, dropped_blocks), None))
         return out
@@ -264,8 +264,9 @@ class Pipeline:
 
     def __init__(self, source, tagger=None, emit: Emit | None = None, model_device: str | None = None,
                  start_wall: datetime | None = None, window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S,
-                 id_prefix: str = ""):
+                 id_prefix: str = "", record_latency: bool = True):
         self.source = source
+        self.record_latency = record_latency     # False for offline runs: wall-clock latency is meaningless there
         self.analyzer = Analyzer(source.info, tagger, model_device, start_wall=start_wall,
                                  window_s=window_s, hop_s=hop_s, id_prefix=id_prefix)
         self.rw = RollingWindow(source.info.sample_rate, window_s, hop_s)
@@ -282,8 +283,8 @@ class Pipeline:
         self._reset_requested.set()
 
     def _record_emit(self, msg: dict, capture: float | None) -> None:
-        if capture is not None and msg["type"] == "event":
-            self.analyzer.record_latency((time.monotonic() - capture) * 1000)
+        if self.record_latency and capture is not None and msg["type"] == "event":
+            self.analyzer.record_latency((time.perf_counter() - capture) * 1000)
         if self.keep_messages:
             self.messages.append(msg)
 
@@ -363,3 +364,50 @@ class Pipeline:
     @property
     def running(self) -> bool:
         return self._running
+
+
+# --------------------------------------------------------------------------- offline (evaluation)
+_TAGGER_CACHE: dict[bool, object] = {}
+
+
+def default_tagger(force_cpu: bool = False):
+    """CNN14, loaded once per process and reused (loading takes seconds; evaluation runs many clips)."""
+    if force_cpu not in _TAGGER_CACHE:
+        from echotrace.tagging.panns_tagger import PannsTagger
+        t = PannsTagger(force_cpu=force_cpu)
+        t.warmup()
+        _TAGGER_CACHE[force_cpu] = t
+    return _TAGGER_CACHE[force_cpu]
+
+
+def run_wav_detailed(path, tagger=None, *, force_cpu: bool = False, calibration=None,
+                     start_wall: datetime | None = None, keep_frames: bool = True) -> tuple[list[dict], Analyzer]:
+    """Run a WAV through the FULL pipeline (same code as LIVE), as fast as possible.
+
+    Returns (messages, analyzer). messages are the {type, data} dicts the WebSocket would carry, in order,
+    labelled source="RECORDED". The analyzer gives the rest:
+      analyzer.events           every Event (id, t_start, t_end, category, label, confidence, zone, angle_deg)
+      analyzer.alerts           EchoTrace alerts: one dict per sequence escalation (sequence_id, risk, pattern, event_id)
+      analyzer.baseline.alerts  classification-only baseline alerts (one per concerning event)
+      analyzer.sequences        final state of every sequence message, by id
+    Latency is NOT measured here (no real-time pacing; latency_ms stays 0.0) - measure it with a real-time
+    run (e.g. the server in RECORDED mode, or Pipeline(WavReplaySource(path, realtime=True), ...).run_to_end()
+    and analyzer.latencies). Output is deterministic for a given WAV, tagger and calibration.
+    tagger: anything with .labels/.device/.tag(window) (default: cached CNN14).
+    calibration: a localization.zones.Calibration (default: backend/calibration.json or the built-in default).
+    """
+    from echotrace.audio.sources import WavReplaySource
+    src = WavReplaySource(path, realtime=False)
+    pipe = Pipeline(src, tagger=tagger if tagger is not None else default_tagger(force_cpu),
+                    start_wall=start_wall or datetime(2000, 1, 1), record_latency=False)
+    if calibration is not None:
+        pipe.analyzer.localizer = ZoneLocalizer(calibration)
+    msgs = pipe.run_to_end()
+    if not keep_frames:
+        msgs = [m for m in msgs if m["type"] != "frame"]
+    return msgs, pipe.analyzer
+
+
+def run_wav(path, tagger=None, **kw) -> list[dict]:
+    """Offline: every message the pipeline produces for a WAV (see run_wav_detailed)."""
+    return run_wav_detailed(path, tagger, **kw)[0]
