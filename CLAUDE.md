@@ -1,0 +1,119 @@
+# EchoTrace — project brief (source of truth across sessions)
+
+Solo build at Hacktoberfest Hack Day Bengaluru (IEEE RIT), track: Healthcare, well-being & public services.
+Hard deadline: working live demo by 18:00 on 2026-10-09. Fresh build: all code written in this repo; never read/copy from other folders.
+Work phase by phase. At the end of each phase: commit + push to origin/main, give exact PowerShell verify commands and expected output, then STOP until the user says "next". Claude cannot hear the mic: anything involving live audio must come with a script the user runs and reports back on.
+
+## Progress
+- [x] Phase 0 — Setup
+- [ ] Phase 1 — Hearing (PANNs live)
+- [ ] Phase 2 — Connecting (core logic)
+- [ ] Phase 3 — Serving
+- [ ] Phase 4 — Dashboard
+- [ ] Phase 5 — Proof + fallback
+- [ ] Phase 6 — Open-source polish
+
+## What EchoTrace is
+Open-weight, fully local AI that turns environmental sound into situational awareness for emergency responders, firefighters, industrial-safety teams and smart-building operators, for when cameras can't see (smoke, darkness, blind spots). Existing audio AI labels sounds one at a time. EchoTrace:
+1. DETECTS acoustic events with PANNs (CNN14, pretrained on AudioSet, 527 classes)
+2. LOCALIZES each event approximately to LEFT / CENTRE / RIGHT using GCC-PHAT + TDOA on a 2-channel mic (signal processing, not ML)
+3. CORRELATES events across time and space into sequences (temporal event graph)
+4. RAISES explainable GREEN / AMBER / RED alerts with deterministic plain-language summaries
+
+Complements CCTV; never replaces it. Tagline: "PANNs hears. EchoTrace connects."
+
+DEMO: repeatable 4-sound sequence into the live mic (phone speaker ~1 m left/centre/right of the laptop):
+FOOTSTEPS (LEFT) -> FOOTSTEPS (CENTRE) -> IMPACT (RIGHT) -> DISTRESS (RIGHT).
+Dashboard labels each sound with time + confidence, places it L/C/R, links them into ONE sequence ("Possible correlated acoustic sequence, moving towards RIGHT") and explains why.
+
+METRICS vs a CLASSIFICATION-ONLY BASELINE (alerts whenever any single concerning label crosses threshold):
+sequence-recognition accuracy, false-alert reduction, L/C/R accuracy, end-to-end latency.
+
+## Known environment facts (verified; design for them)
+- Windows 11, PowerShell. System Python is 3.14 — do NOT use. Use `py -3.12 -m venv backend\.venv`.
+- torch CUDA 12.8 wheel (`--index-url https://download.pytorch.org/whl/cu128`) works on RTX 4050 Laptop GPU. CPU must still work (auto-detect, `--cpu`). CNN14 ≈ 12 ms / 1 s window on GPU, ≈ 46 ms on CPU.
+- No `wget`. panns_inference shells out to wget for `Cnn14_mAP=0.431.pth` and `class_labels_indices.csv` in `~/panns_data/`. BOTH ALREADY PRESENT (weights 327,428,481 bytes; CSV 14,675 bytes, 527 classes). download_weights.py detects valid files and skips; if downloading, RESUME partial files (HTTP 206; Zenodo drops connections), retry, never delete partials. `--check` flag.
+- MIC: built-in Intel array. Device name containing "Microphone Array 2" (fallback "Microphone Array 1") via **Windows WDM-KS** host API ONLY.
+  - WASAPI/MME versions go through voice processing: channels merged (corr ~0.9996, lag 0), sounds suppressed → unusable.
+  - WDM-KS: genuine stereo (corr ~0.73). 48 kHz only (44.1/96 rejected); 2 channels. Exclusive — close other apps.
+- Select devices by NAME SUBSTRING (indices change with Bluetooth headset). Prefer host API order: WDM-KS first.
+- Mic spacing d = 0.065 m. Max delay ≈ ±9.1 samples @ 48 kHz; CENTRE zone (|angle| < 20°) ≈ ±3.1 samples. GCC-PHAT needs sub-sample precision: zero-padded IFFT upsampling (~8x) + parabolic peak interpolation.
+- No hardware gain: quiet room ≈ -56 dBFS. Configurable TAGGER_GAIN_DB applied before tagging (NOT before localization).
+- list_devices.py hides loopback endpoints ("Stereo Mix", "PC Speaker").
+
+## Hard constraints
+- No proprietary/cloud AI API, no generative LLM. Summaries template-based, deterministic.
+- Model: PANNs CNN14 via `panns_inference` (code MIT; weights CC BY 4.0 from Zenodo — attribute in README). No training/fine-tuning.
+- Stack: Python 3.12, PyTorch, FastAPI, uvicorn, WebSockets, sounddevice, numpy, scipy. Frontend: React + Vite + TypeScript, plain CSS, no heavy UI lib. Optional SQLite only if time allows.
+- Privacy: local inference only; store event metadata; raw audio saved only when explicitly recording a test clip.
+- Ethics wording (UI + summaries): RED = "potentially significant sequence", never "confirmed emergency". No identity tracking — only "possible acoustic trajectory". Every event shows confidence; every alert shows why.
+- SOURCE HONESTY: every message and UI screen carries source mode LIVE | RECORDED | SIMULATED. Never show simulated/recorded as live (always-visible badge; SIMULATED has distinct warning colour).
+- Modular pipeline (tagger, localizer, correlator swappable behind small interfaces). MIT licence. All tunables in one config.py.
+- Simple and robust over clever.
+
+## Architecture
+```
+echotrace/ (repo root)
+  backend/
+    echotrace/
+      config.py               # rates, window/hop, gain, thresholds, mic spacing, device names, category map, pattern settings
+      schemas.py              # Pydantic WS contract
+      audio/sources.py        # LiveMicSource (sounddevice, WDM-KS, 48k, 2ch; callback only enqueues + counts drops), WavReplaySource (real-time paced), SimSource (scripted synthetic events, no model)
+      tagging/panns_tagger.py # rolling 48k stereo window -> downmix -> gain -> resample_poly to 32k (whole window) -> CNN14 clipwise; window 1.0 s (cfg 2.0), hop 0.5 s; warm-up
+      tagging/categories.py   # AudioSet label NAMES -> categories; resolve at startup, fail loudly with "did you mean"
+      detection/debounce.py   # per-category hysteresis (on ~0.30, off ~0.15, N-of-M) -> events t_start/t_end/peak conf
+      localization/gcc_phat.py  # GCC-PHAT on raw 48k stereo, energy-gated frames near onset, band-limited, upsampled + parabolic, lags ±max_lag; angle = arcsin(clip(c*tau/d)); majority vote
+      localization/zones.py   # angle -> LEFT/CENTRE/RIGHT, sign/offset from calibration JSON, UNKNOWN if channels identical / low confidence
+      correlation/graph.py    # events = nodes; link to recent events within ~8 s; zone progression = "possible acoustic trajectory"
+      correlation/patterns.py # MOVEMENT_IMPACT_DISTRESS: FOOTSTEPS+ -> IMPACT -> DISTRESS => RED
+                              # IMPACT_DISTRESS: IMPACT -> DISTRESS => AMBER
+                              # ALARM_EVACUATION: ALARM -> several FOOTSTEPS => AMBER
+                              # GLASS_INTRUSION: GLASS -> FOOTSTEPS => AMBER
+                              # isolated single event => GREEN (logged, no alert) = false-alert reduction vs baseline
+      risk/engine.py          # current risk + decay to GREEN after quiet time
+      risk/summary.py         # deterministic text, e.g. "14:02:11 - Footsteps heard moving LEFT -> CENTRE, followed 1.2 s later by an impact on the RIGHT (71%) and a possible distress vocalisation on the RIGHT (54%). Pattern: movement -> impact -> distress. Status RED: potentially significant sequence - verify."
+      baseline.py             # classification-only baseline alerter (metrics)
+      pipeline.py             # audio -> queue -> inference thread -> debounce -> localize -> correlate -> risk -> asyncio broadcast (call_soon_threadsafe); drop stale windows if behind + report
+      api/server.py           # FastAPI: WS /ws; GET /api/status; GET/POST /api/mode {source, device?, file?}; GET /api/events; POST /api/reset; GET /api/metrics; serves built frontend
+    scripts/  download_weights.py, list_devices.py, live_topk.py, record_clip.py, calibrate_direction.py, eval.py, ws_print.py
+    tests/
+  frontend/   (React + Vite + TS)
+  recordings/ (demo clips + labels/*.json ground truth; topk logs)
+  docs/
+  README.md, LICENSE (MIT), .gitignore
+```
+
+CATEGORIES (AudioSet display names; verify in CSV; category score = max over members; tuned after Phase 1):
+- FOOTSTEPS: "Walk, footsteps", "Run"
+- IMPACT: "Thump, thud", "Slam", "Bang", "Smash, crash", "Knock"
+- DISTRESS: "Screaming", "Yell", "Crying, sobbing", "Shout", "Groan", "Whimper"
+- ALARM: "Smoke detector, smoke alarm", "Fire alarm", "Alarm", "Siren", "Buzzer"
+- GLASS: "Glass", "Shatter", "Breaking"
+- DOOR: "Door", "Sliding door", "Cupboard open or close"
+
+## WebSocket contract (Pydantic in schemas.py + TS in frontend/src/types.ts)
+All messages `{type, data}`. Every data has `source` ("LIVE"|"RECORDED"|"SIMULATED"), `t` (monotonic s since session start), `wall` (ISO).
+- frame: `{top:[{label,p}] (5), categories:{FOOTSTEPS:p,...}, rms_db:[l,r]}`
+- event: `{id, t_start, t_end, category, label, confidence, zone:"LEFT"|"CENTRE"|"RIGHT"|"UNKNOWN", angle_deg|null}`
+- sequence: `{id, event_ids, pattern, risk:"GREEN"|"AMBER"|"RED", explanation:[str], summary, trajectory:[zone,...]}`
+- status: `{risk, latency_ms, device, host_api, sample_rate, channels, localization:"ON"|"OFF", model_device:"cpu"|"cuda", dropped_blocks}`
+latency_ms = capture of the audio block that triggered the event -> WS send time.
+
+## Phases
+**PHASE 0 — Setup**: scaffold, requirements.txt, .gitignore, MIT LICENSE, CLAUDE.md, venv (py -3.12). download_weights.py (detect existing; --check), list_devices.py (WDM-KS first; mark 48k x 2ch; hide loopbacks; check channels distinct). Commit + push.
+
+**PHASE 1 — Hearing**: tagging/ + LiveMicSource + scripts/live_topk.py: `--device --window --hop --gain --cpu`; header (device, host API, rate, channels, cpu/cuda, window, hop); every hop: per-channel meter, top-5, category scores (* for >= 0.30); `--log` writes all 527 probs per hop to recordings/topk_*.csv; `--guided` test script with prompts + 5 s get-ready gaps (not counted), `n` skips a step: BACKGROUND 20 s, FOOTSTEPS, IMPACT (thud/book drop), DISTRESS (scream clip), ALARM (clip), GLASS (clip), KNOCK, CHATTER (should trigger nothing); on finish/Ctrl+C: per-category max/mean/hops>=0.30, top-10 labels overall, per-step breakdown. scripts/record_clip.py (48k stereo 24-bit WAV; warn if channels identical). Tests: category names resolve; resampling shape/frequency; windowing; device picking; CNN14 smoke test on generated WAV. After the user's guided test: read CSV logs, tune CATEGORIES, thresholds, TAGGER_GAIN_DB. Commit + push.
+
+**PHASE 2 — Connecting** (unit-testable without mic): debounce, gcc_phat + zones, graph, patterns, risk engine, summary, baseline, pipeline wired to all three sources. SimSource emits scripted demo sequence + distractor single events, tagged SIMULATED. Tests: hysteresis merges/splits; GCC-PHAT recovers sub-sample + integer delays (noise, clicks) with correct L/C/R at d=6.5 cm; demo sequence -> one RED sequence with correct explanation; isolated events -> GREEN while baseline alerts; summaries deterministic. Localization OFF (zones UNKNOWN, status says so) if channels identical or mono; classification + correlation keep working. scripts/calibrate_direction.py (LEFT then RIGHT) -> calibration JSON sign/offset. Commit + push.
+
+**PHASE 3 — Serving**: FastAPI + WS broadcast + REST + runtime source switching (LIVE / RECORDED wav / SIMULATED); ws_print.py; one command starts everything. Commit + push.
+
+**PHASE 4 — Dashboard** (dark ops console, projector-readable): StatusBanner (big risk + cautious wording + always-visible SOURCE badge + latency + localization ON/OFF); AcousticMap (top-down room, mic pair at bottom, L/C/R zones, dots by category fading ~15 s, arrows for active sequence trajectory); Timeline (lane per category, last 60 s, bars w/ confidence, sequence links); DetailPanel (click sequence -> pattern, risk, summary, why list, contributing events w/ time/conf/zone); Live meters (per-channel level + top-5); Controls (source switcher Live/Replay/Sim, reset; WS auto-reconnect); MetricsPanel (/api/metrics). Vite proxy in dev; backend serves build. Commit + push.
+
+**PHASE 5 — Proof + fallback**: recordings/labels/*.json + scripts/eval.py replays labelled WAVs through the SAME pipeline (faster than real time): sequence-recognition accuracy, false alerts EchoTrace vs baseline (+ % reduction), L/C/R accuracy, latency mean/p95 (from a real-time run). Writes docs/metrics.json + markdown table. Negative clips (lone door slam, lone footsteps, chatter). Fallback ladder, one click each: LIVE -> RECORDED demo clip -> SIMULATED (labelled). Commit + push.
+
+**PHASE 6 — Polish**: README (problem, mermaid pipeline, Windows setup, demo, record + evaluate, metrics table, ethics & limitations — zones only, front/back ambiguity, 6.5 cm array, noisy rooms, supplements responders; troubleshooting — WDM-KS exclusivity, Windows audio enhancements, Bluetooth headset; attribution — Kong et al. 2020 PANNs, qiuqiangkong/audioset_tagging_cnn MIT, panns_inference, Zenodo weights CC BY 4.0, AudioSet). Fresh clone must run from README. Commit + push.
+
+## Conventions
+- Run backend scripts from `backend\` with the venv python: `backend\.venv\Scripts\python.exe`.
+- Commit messages end with: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`

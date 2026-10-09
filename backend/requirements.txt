@@ -1,0 +1,16 @@
+# Install torch first (GPU wheel; omit --index-url for CPU-only):
+#   backend\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu128
+# then:
+#   backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+numpy>=1.26
+scipy>=1.11
+sounddevice>=0.4.6
+soundfile>=0.12
+panns_inference==0.1.1
+torchlibrosa>=0.1.0
+librosa>=0.10
+fastapi>=0.110
+uvicorn[standard]>=0.29
+websockets>=12
+pydantic>=2.6
+pytest>=8

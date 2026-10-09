@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Model weights (downloaded to ~/panns_data, never committed)
+*.pth
+*.part
+
+# Node
+node_modules/
+frontend/dist/
+
+# Audio: large recordings stay local; small demo clips are force-added explicitly
+*.wav
+*.flac
+recordings/topk_*.csv
+
+# Local state
+backend/calibration.json
+*.sqlite
+*.log
+.env
+.vscode/
+.idea/
