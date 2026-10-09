@@ -18,6 +18,15 @@ def test_all_configured_category_names_resolve():
         assert len(cmap.indices[cat]) == len(names), cat
 
 
+def test_per_category_thresholds_are_sane():
+    for cat in config.CATEGORIES:
+        on, off = config.thresholds(cat)
+        assert 0 < off < on < 1, cat
+    assert config.thresholds("IMPACT") == config.CATEGORY_THRESHOLDS["IMPACT"]
+    assert config.thresholds("GLASS") == (config.ON_THRESHOLD, config.OFF_THRESHOLD)
+    assert set(config.CATEGORY_THRESHOLDS) <= set(config.CATEGORIES)
+
+
 def test_typo_fails_loudly_with_suggestion():
     with pytest.raises(ValueError) as e:
         CategoryMap(FAKE, {"FOOTSTEPS": ["Walk, footstep"]})

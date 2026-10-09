@@ -10,7 +10,25 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       UNUSABLE for tuning: test sounds never rose above the room (max level -34.8 dBFS was in BACKGROUND; IMPACT
       loudest -39 dBFS; no alarm-like label at all; Speech ~0.9 every step; 86 ms/hop suggests CPU). Tunables left
       unchanged on purpose. Added per-step verdicts + r = redo, --save-wav, attempt/model_device CSV columns.
-      WAITING for guided run #2 (with --save-wav), then tune CATEGORIES / thresholds / TAGGER_GAIN_DB.
+      Guided run #2 (topk_20261009_113628, cuda, gain +20, window 1.0; NO wav was saved despite the plan):
+      background music + talking (Music ~0.92, Speech ~0.9). Results: GLASS HEARD (Glass 0.71, Breaking 0.51,
+      Shatter 0.43). IMPACT/KNOCK loud (+16/+17 dB) but heard as Hammer 0.35 / Chop 0.51 / Basketball bounce 0.56.
+      DISTRESS clip heard as Neigh/Horse 0.74 (bad clip). ALARM clip heard as Wind chime/Chime (not a beeping
+      detector). FOOTSTEPS too quiet (+2.4 dB). Tuned: IMPACT += Hammer, Chop; IMPACT on/off 0.20/0.10
+      (config.CATEGORY_THRESHOLDS). Window/gain unchanged: no WAV, so no offline sweep possible.
+      NEXT: short rerun `--guided --steps FOOTSTEPS,IMPACT,DISTRESS,ALARM --save-wav`, then sweep window 1.0/2.0 x
+      gain 0/6/12/20 offline on that WAV and retune.
+
+## Localization findings (for calibrate_direction.py / Phase 2)
+- Run #2 GCC-PHAT loud-hop medians: RIGHT = IMPACT -5.6 (sd 0.4), DISTRESS -6.8, KNOCK -6.2; CENTRE = ALARM -0.7;
+  LEFT = FOOTSTEPS +6.0 (but only +2.4 dB over room, may be a background source). So with the current channel order,
+  NEGATIVE lag = RIGHT on this laptop (to be confirmed by calibration).
+- GLASS on the LEFT gave -5.5 (sd 0.4) with channel corr collapsing to 0.15: most likely SPATIAL ALIASING. With
+  d = 6.5 cm, frequencies above c/2d ~ 2.6 kHz give a second peak inside +/-9.1 samples; glass energy ~4 kHz has a
+  ~11.4-sample period and +6 - 11.4 = -5.4. Phase 2: cap/weight the GCC band below ~2.6-3 kHz (config.GCC_BAND_HZ)
+  and verify on a recorded glass clip.
+- CNN14 timing in the user's runs: 60-85 ms/hop even on cuda (10 ms in Claude's test). Fine for 0.5 s hops; maybe GPU
+  power state. Latency metric (Phase 5) must be measured on the demo setup.
 
 ## Findings so far
 - WDM-KS "Microphone Array 2" index moves (17 -> 11 within an hour): always resolve by name.

@@ -1,0 +1,105 @@
+==============================================================================
+SUMMARY  (250 hops counted, threshold 0.30)
+------------------------------------------------------------------------------
+category       max   mean  hops>=thr
+FOOTSTEPS     0.18  0.011          0
+IMPACT        0.12  0.008          0
+DISTRESS      0.05  0.001          0
+ALARM         0.04  0.001          0
+GLASS         0.71  0.014          4
+DOOR          0.07  0.005          0
+------------------------------------------------------------------------------
+Top 10 labels overall (by max probability):
+  Speech                                   max 0.92  mean 0.502
+  Music                                    max 0.92  mean 0.163
+  Neigh, whinny                            max 0.74  mean 0.008
+  Animal                                   max 0.72  mean 0.050
+  Glass                                    max 0.71  mean 0.013
+  Horse                                    max 0.66  mean 0.026
+  Basketball bounce                        max 0.56  mean 0.008
+  Breaking                                 max 0.51  mean 0.006
+  Domestic animals, pets                   max 0.51  mean 0.010
+  Chop                                     max 0.51  mean 0.018
+------------------------------------------------------------------------------
+Per-step breakdown
+
+[BACKGROUND] 40 hops, expect nothing, sound at -
+  other categories >= thr: none
+  category max: FOOT 0.03  IMP 0.00  DIST 0.00  ALARM 0.00  GLASS 0.03  DOOR 0.02
+  top labels:   Speech 0.88 | Finger snapping 0.49 | Animal 0.27 | Clip-clop 0.26 | Male speech, man speaking 0.23
+  level: median -49.8 dBFS, loudest-quarter -48.3 dBFS (+1.5 dB vs background)
+  channels: corr all +0.919  loud +0.896
+  GCC-PHAT lag (samples, + = right ch. later): all median +3.82 (sd 3.84)  loud median +0.20 (sd 3.94, values +1.5, -1.3, -4.7, +3.2, +2.7, -6.8)  peak 0.25  ~+1 deg
+
+[FOOTSTEPS] 30 hops, expect FOOTSTEPS, sound at LEFT
+  verdict: TOO QUIET - FOOTSTEPS only 0.18, sound +2.4 dB vs background (want >= +10 dB): louder / closer.  Heard: Speech 0.84, Music 0.76, Tap 0.23
+  FOOTSTEPS: max 0.18  mean 0.033  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.18  IMP 0.09  DIST 0.00  ALARM 0.00  GLASS 0.00  DOOR 0.02
+  top labels:   Speech 0.84 | Music 0.76 | Tap 0.23 | Pigeon, dove 0.21 | Clip-clop 0.19
+  level: median -48.6 dBFS, loudest-quarter -47.4 dBFS (+2.4 dB vs background)
+  channels: corr all +0.876  loud +0.843
+  GCC-PHAT lag (samples, + = right ch. later): all median +6.26 (sd 1.63)  loud median +6.03 (sd 2.76, values +6.5, +6.6, +6.0, +5.9, +6.4, +5.9)  peak 0.34  ~+42 deg
+
+[IMPACT] 30 hops, expect IMPACT, sound at RIGHT
+  verdict: LOUD BUT NOT RECOGNISED - IMPACT 0.07 (+16.0 dB vs background).  Heard: Music 0.75, Speech 0.72, Basketball bounce 0.56
+  IMPACT: max 0.07  mean 0.020  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.01  IMP 0.07  DIST 0.00  ALARM 0.00  GLASS 0.01  DOOR 0.01
+  top labels:   Music 0.75 | Speech 0.72 | Basketball bounce 0.56 | Musical instrument 0.39 | Hammer 0.35
+  level: median -36.7 dBFS, loudest-quarter -33.8 dBFS (+16.0 dB vs background)
+  channels: corr all +0.951  loud +0.949
+  GCC-PHAT lag (samples, + = right ch. later): all median -5.60 (sd 2.64)  loud median -5.60 (sd 0.40, values -5.6, -6.3, -5.6, -5.5, -5.4, -5.2)  peak 0.49  ~-38 deg
+
+[DISTRESS] 30 hops, expect DISTRESS, sound at RIGHT
+  verdict: TOO QUIET - DISTRESS only 0.05, sound +6.4 dB vs background (want >= +10 dB): louder / closer.  Heard: Speech 0.85, Neigh, whinny 0.74, Animal 0.72
+  DISTRESS: max 0.05  mean 0.003  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.07  IMP 0.02  DIST 0.05  ALARM 0.04  GLASS 0.01  DOOR 0.07
+  top labels:   Speech 0.85 | Neigh, whinny 0.74 | Animal 0.72 | Horse 0.66 | Domestic animals, pets 0.51
+  level: median -49.2 dBFS, loudest-quarter -43.5 dBFS (+6.4 dB vs background)
+  channels: corr all +0.819  loud +0.668
+  GCC-PHAT lag (samples, + = right ch. later): all median +1.55 (sd 5.54)  loud median -6.77 (sd 3.59, values -7.0, -7.2, -6.5, -6.8, -6.8, -6.5)  peak 0.33  ~-48 deg
+
+[ALARM] 30 hops, expect ALARM, sound at CENTRE
+  verdict: LOUD BUT NOT RECOGNISED - ALARM 0.00 (+10.5 dB vs background).  Heard: Music 0.92, Speech 0.82, Wind chime 0.45
+  ALARM: max 0.00  mean 0.001  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.04  IMP 0.01  DIST 0.00  ALARM 0.00  GLASS 0.05  DOOR 0.00
+  top labels:   Music 0.92 | Speech 0.82 | Wind chime 0.45 | Chime 0.39 | Clip-clop 0.22
+  level: median -46.5 dBFS, loudest-quarter -39.3 dBFS (+10.5 dB vs background)
+  channels: corr all +0.839  loud +0.680
+  GCC-PHAT lag (samples, + = right ch. later): all median +0.07 (sd 2.30)  loud median -0.70 (sd 0.41, values +0.1, -1.0, -0.8, -0.7, +0.1, -0.5)  peak 0.38  ~-4 deg
+
+[GLASS] 30 hops, expect GLASS, sound at LEFT
+  verdict: HEARD - GLASS 0.71  (+9.0 dB vs background)
+  GLASS: max 0.71  mean 0.090  hops>=thr 4/30  -> OK
+  other categories >= thr: none
+  category max: FOOT 0.05  IMP 0.01  DIST 0.00  ALARM 0.00  GLASS 0.71  DOOR 0.03
+  top labels:   Speech 0.87 | Glass 0.71 | Breaking 0.51 | Chink, clink 0.49 | Keys jangling 0.44
+  level: median -49.0 dBFS, loudest-quarter -40.8 dBFS (+9.0 dB vs background)
+  channels: corr all +0.706  loud +0.147
+  GCC-PHAT lag (samples, + = right ch. later): all median -0.56 (sd 5.00)  loud median -5.48 (sd 0.38, values -6.1, -6.0, -5.5, -5.6, -5.0, -5.1)  peak 0.57  ~-37 deg
+
+[KNOCK] 20 hops, expect IMPACT, sound at RIGHT
+  verdict: LOUD BUT NOT RECOGNISED - IMPACT 0.12 (+17.3 dB vs background).  Heard: Speech 0.92, Music 0.64, Chop 0.51
+  IMPACT: max 0.12  mean 0.021  hops>=thr 0/20  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.12  DIST 0.01  ALARM 0.00  GLASS 0.02  DOOR 0.02
+  top labels:   Speech 0.92 | Music 0.64 | Chop 0.51 | Vehicle 0.50 | Male speech, man speaking 0.30
+  level: median -43.0 dBFS, loudest-quarter -32.5 dBFS (+17.3 dB vs background)
+  channels: corr all +0.816  loud +0.694
+  GCC-PHAT lag (samples, + = right ch. later): all median -4.73 (sd 4.24)  loud median -6.19 (sd 4.67, values -6.2, -6.9, +5.1, -6.9, -6.1)  peak 0.24  ~-43 deg
+
+[CHATTER] 40 hops, expect nothing, sound at CENTRE
+  verdict: OK - nothing triggered  (+9.4 dB vs background)
+  other categories >= thr: none
+  category max: FOOT 0.02  IMP 0.00  DIST 0.00  ALARM 0.00  GLASS 0.00  DOOR 0.01
+  top labels:   Speech 0.91 | Male speech, man speaking 0.33 | Vehicle 0.19 | Air conditioning 0.17 | Narration, monologue 0.16
+  level: median -43.6 dBFS, loudest-quarter -40.4 dBFS (+9.4 dB vs background)
+  channels: corr all +0.859  loud +0.869
+  GCC-PHAT lag (samples, + = right ch. later): all median -4.83 (sd 3.67)  loud median -2.47 (sd 3.77, values -6.3, +1.6, +1.7, +1.3, -6.7, +1.4)  peak 0.35  ~-16 deg
+
+Lag guide: physical max is +/-9.1 samples; |lag| < ~3.1 is CENTRE. The sign for LEFT/RIGHT
+is fixed later by calibrate_direction.py - here, check LEFT and RIGHT steps have opposite signs.
+==============================================================================

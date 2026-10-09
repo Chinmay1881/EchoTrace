@@ -43,6 +43,17 @@ TOP_K = 5
 # ---------------------------------------------------------------- detection (hysteresis)
 ON_THRESHOLD = 0.30
 OFF_THRESHOLD = 0.15
+# Per-category (on, off) overrides. Short transients (a thud) fill only a small part of a 1 s window, so
+# CNN14's clip-wise score is diluted: guided run 113628 had IMPACT hits 2 -> 5 going 0.30 -> 0.20 with no
+# new triggers in non-impact steps.
+CATEGORY_THRESHOLDS: dict[str, tuple[float, float]] = {
+    "IMPACT": (0.20, 0.10),
+}
+
+
+def thresholds(category: str) -> tuple[float, float]:
+    """(on, off) hysteresis thresholds for a category."""
+    return CATEGORY_THRESHOLDS.get(category, (ON_THRESHOLD, OFF_THRESHOLD))
 ON_N, ON_M = 1, 2              # N of the last M windows >= ON to open an event
 OFF_HOPS = 2                   # consecutive windows < OFF to close it
 
@@ -59,7 +70,10 @@ LINK_WINDOW_S = 8.0
 # ---------------------------------------------------------------- categories (AudioSet display names)
 CATEGORIES: dict[str, list[str]] = {
     "FOOTSTEPS": ["Walk, footsteps", "Run"],
-    "IMPACT": ["Thump, thud", "Slam", "Bang", "Smash, crash", "Knock"],
+    # Hammer/Chop: what CNN14 actually output for table thuds and knocks in guided run 113628 (0.35 / 0.51),
+    # <= 0.07 in every non-impact step. Not added: Basketball bounce (would be shown to users as the event
+    # label), Tap (fires on footsteps), Wood / Wood block (no evidence).
+    "IMPACT": ["Thump, thud", "Slam", "Bang", "Smash, crash", "Knock", "Hammer", "Chop"],
     "DISTRESS": ["Screaming", "Yell", "Crying, sobbing", "Shout", "Groan", "Whimper"],
     "ALARM": ["Smoke detector, smoke alarm", "Fire alarm", "Alarm", "Siren", "Buzzer"],
     "GLASS": ["Glass", "Shatter", "Breaking"],

@@ -103,7 +103,7 @@ def loudest_quarter_db(sh: list[Hop]) -> float:
 
 
 def step_verdict(sh: list[Hop], step: "Step", bg_db: float | None, labels: list[str],
-                 cmap: CategoryMap, thr: float) -> tuple[bool, str]:
+                 cmap: CategoryMap, thr: dict[str, float]) -> tuple[bool, str]:
     """(ok, one-line verdict) for a finished guided step."""
     if not sh:
         return False, "no audio"
@@ -113,10 +113,10 @@ def step_verdict(sh: list[Hop], step: "Step", bg_db: float | None, labels: list[
     smx = np.stack([h.probs for h in sh]).max(axis=0)
     top = ", ".join(f"{labels[i]} {smx[i]:.2f}" for i in np.argsort(smx)[::-1][:3])
     if step.expect is None:
-        trig = [f"{c} {p:.2f}" for c, p in sc.items() if p >= thr]
+        trig = [f"{c} {p:.2f}" for c, p in sc.items() if p >= thr[c]]
         return (not trig), ("OK - nothing triggered" if not trig else "TRIGGERED " + ", ".join(trig)) + f"  ({lvl})"
     p = sc[step.expect]
-    if p >= thr:
+    if p >= thr[step.expect]:
         return True, f"HEARD - {step.expect} {p:.2f}  ({lvl})"
     if above is not None and above < LOUD_ENOUGH_DB:
         return False, (f"TOO QUIET - {step.expect} only {p:.2f}, sound {lvl} (want >= +{LOUD_ENOUGH_DB:.0f} dB): "
@@ -147,16 +147,21 @@ def meter(level_db: float, width: int = 12, lo: float = -70.0, hi: float = -10.0
 SHORT = {"FOOTSTEPS": "FOOT", "IMPACT": "IMP", "DISTRESS": "DIST", "ALARM": "ALARM", "GLASS": "GLASS", "DOOR": "DOOR"}
 
 
-def cat_line(scores: dict[str, float], thr: float, st: Style) -> str:
+def fmt_thr(thr: dict[str, float]) -> str:
+    return "  ".join(f"{SHORT.get(c, c)} {v:.2f}" for c, v in thr.items())
+
+
+def cat_line(scores: dict[str, float], thr: dict[str, float], st: Style) -> str:
     parts = []
     for cat, p in scores.items():
-        s = f"{SHORT.get(cat, cat)} {p:.2f}{'*' if p >= thr else ' '}"
-        parts.append(st(s, "1;92") if p >= thr else s)
+        s = f"{SHORT.get(cat, cat)} {p:.2f}{'*' if p >= thr[cat] else ' '}"
+        parts.append(st(s, "1;92") if p >= thr[cat] else s)
     return "  ".join(parts)
 
 
 # ------------------------------------------------------------------ summary
-def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float, guided: bool) -> list[str]:
+def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: dict[str, float], guided: bool,
+              steps: list["Step"] | None = None) -> list[str]:
     out: list[str] = []
     counted = latest_attempts(hops)
     if not counted:
@@ -165,11 +170,11 @@ def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float,
     cats = {c: np.array([cmap.scores(h.probs)[c] for h in counted]) for c in cmap.names}
 
     out.append("=" * 78)
-    out.append(f"SUMMARY  ({len(counted)} hops counted, threshold {thr:.2f})")
+    out.append(f"SUMMARY  ({len(counted)} hops counted, on-thresholds {fmt_thr(thr)})")
     out.append("-" * 78)
     out.append(f"{'category':<11}{'max':>7}{'mean':>7}{'hops>=thr':>11}")
     for c, v in cats.items():
-        out.append(f"{c:<11}{v.max():>7.2f}{v.mean():>7.3f}{int((v >= thr).sum()):>11}")
+        out.append(f"{c:<11}{v.max():>7.2f}{v.mean():>7.3f}{int((v >= thr[c]).sum()):>11}")
 
     out.append("-" * 78)
     out.append("Top 10 labels overall (by max probability):")
@@ -182,7 +187,7 @@ def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float,
         out.append("Per-step breakdown")
         bg = [h for h in counted if h.step == "BACKGROUND"]
         bg_db = float(np.median([max(h.rms) for h in bg])) if bg else None
-        for step in STEPS:
+        for step in (steps or STEPS):
             sh = [h for h in counted if h.step == step.name]
             if not sh:
                 out.append(f"\n[{step.name}] skipped")
@@ -197,11 +202,11 @@ def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float,
                 out.append("  verdict: " + step_verdict(sh, step, bg_db, labels, cmap, thr)[1])
             if step.expect:
                 v = sc[step.expect]
-                verdict = "OK" if (v >= thr).any() else "MISSED"
+                verdict = "OK" if (v >= thr[step.expect]).any() else "MISSED"
                 out.append(f"  {step.expect}: max {v.max():.2f}  mean {v.mean():.3f}  "
-                           f"hops>=thr {int((v >= thr).sum())}/{len(sh)}  -> {verdict}")
-            false = [f"{c} {sc[c].max():.2f} ({int((sc[c] >= thr).sum())} hops)"
-                     for c in cmap.names if c != step.expect and (sc[c] >= thr).any()]
+                           f"hops>=thr {int((v >= thr[step.expect]).sum())}/{len(sh)}  -> {verdict}")
+            false = [f"{c} {sc[c].max():.2f} ({int((sc[c] >= thr[c]).sum())} hops)"
+                     for c in cmap.names if c != step.expect and (sc[c] >= thr[c]).any()]
             out.append("  other categories >= thr: " + (", ".join(false) if false else "none"))
             out.append("  category max: " + "  ".join(f"{SHORT[c]} {sc[c].max():.2f}" for c in cmap.names))
             out.append("  top labels:   " + " | ".join(f"{labels[i]} {smx[i]:.2f}"
@@ -248,10 +253,11 @@ def main() -> None:
     ap.add_argument("--window", type=float, default=config.WINDOW_S, help="analysis window, s")
     ap.add_argument("--hop", type=float, default=config.HOP_S, help="hop, s")
     ap.add_argument("--gain", type=float, default=config.TAGGER_GAIN_DB, help="tagger gain, dB")
-    ap.add_argument("--threshold", type=float, default=config.ON_THRESHOLD)
+    ap.add_argument("--threshold", type=float, help="one on-threshold for every category (default: per-category from config)")
     ap.add_argument("--cpu", action="store_true", help="force CPU inference")
     ap.add_argument("--log", action="store_true", help="write all 527 probabilities per hop to recordings/")
     ap.add_argument("--guided", action="store_true", help="walk through the test script (implies --log)")
+    ap.add_argument("--steps", help="guided: only these steps, e.g. FOOTSTEPS,IMPACT (BACKGROUND is always run)")
     ap.add_argument("--step-seconds", type=float, help="override every guided step's duration (testing)")
     ap.add_argument("--seconds", type=float, help="free run: stop automatically after this many seconds")
     ap.add_argument("--quiet", action="store_true", help="don't print every hop")
@@ -266,6 +272,7 @@ def main() -> None:
     warm_ms = tagger.warmup(args.window)
     labels = tagger.labels
     cmap = CategoryMap(labels)
+    thr = {c: args.threshold if args.threshold is not None else config.thresholds(c)[0] for c in cmap.names}
 
     src = LiveMicSource(args.device)
     rw = RollingWindow(src.rate, args.window, args.hop, src.channels)
@@ -276,7 +283,8 @@ def main() -> None:
     print(f"device   : {src.dev.label}")
     print(f"host API : {src.dev.host_api}   rate: {src.rate} Hz   channels: {src.channels}")
     print(f"model    : CNN14 on {tagger.device} (warm-up {warm_ms:.0f} ms/window)   "
-          f"window {args.window:.2f} s   hop {args.hop:.2f} s   gain {args.gain:+.1f} dB   thr {args.threshold:.2f}")
+          f"window {args.window:.2f} s   hop {args.hop:.2f} s   gain {args.gain:+.1f} dB")
+    print(f"on-thr   : {fmt_thr(thr)}")
     print("keys     : n = skip step, r = redo the last finished step (or restart the current one), q = finish")
     print("=" * 78)
 
@@ -298,10 +306,19 @@ def main() -> None:
         wav_path = config.RECORDINGS_DIR / f"topk_{stamp}.wav"
         wav = sf.SoundFile(wav_path, "w", samplerate=src.rate, channels=src.channels, subtype="PCM_24")
         print(st(f"RAW AUDIO: saving to {wav_path} (you asked for --save-wav)", "93"))
+    elif args.guided:
+        print(st("RAW AUDIO NOT SAVED: offline gain/window tuning needs --save-wav. Ctrl+C and rerun with it "
+                 "if you want that.", "1;93"))
     else:
         print("raw audio: not saved (add --save-wav to keep it)")
 
-    steps = [Step(s.name, args.step_seconds or s.seconds, s.expect, s.where, s.how) for s in STEPS]
+    wanted = [s.strip().upper() for s in args.steps.split(",")] if args.steps else None
+    if wanted:
+        unknown = [w for w in wanted if w not in {s.name for s in STEPS}]
+        if unknown:
+            sys.exit(f"unknown step(s) {unknown}; choose from {[s.name for s in STEPS]}")
+    steps = [Step(s.name, args.step_seconds or s.seconds, s.expect, s.where, s.how) for s in STEPS
+             if not wanted or s.name in wanted or s.name == "BACKGROUND"]   # BACKGROUND = reference level
     step_i, phase, phase_end = 0, "READY", None   # phases: READY (not counted) -> RUN
     attempts = {s.name: 1 for s in steps}
     finished_last: int | None = None              # index of the most recently finished step (for r)
@@ -329,7 +346,7 @@ def main() -> None:
                 print(st(f"    BACKGROUND level {bg:.1f} dBFS. Test sounds should reach about "
                          f"{bg + LOUD_ENOUGH_DB:.0f} dBFS or louder on the meter.", "1;97"))
             return
-        ok, text = step_verdict(sh, s, background_db(), labels, cmap, args.threshold)
+        ok, text = step_verdict(sh, s, background_db(), labels, cmap, thr)
         print(st(f"    [{s.name}] {text}", "1;92" if ok else "1;91"))
         if not ok:
             print(st("    -> press r during the countdown to redo it", "91"))
@@ -416,7 +433,7 @@ def main() -> None:
                           f"  corr {corr:+.2f} lag {lag:+5.1f}  {tagger.last_ms:4.0f} ms"
                           + (st(f"  DROPS {drops}", "91") if drops else ""))
                     print("         " + " | ".join(f"{l} {p:.2f}" for l, p in top_k(probs, labels)))
-                    print("         " + cat_line(scores, args.threshold, st), flush=True)
+                    print("         " + cat_line(scores, thr, st), flush=True)
     except GuidedDone:
         print("\nGuided test complete.")
     except KeyboardInterrupt:
@@ -429,7 +446,10 @@ def main() -> None:
             wav.close()
             print(f"raw audio saved: {wav.name}")
 
-    lines = summarize(hops, labels, cmap, args.threshold, args.guided)
+    lines = [f"run      : {stamp}  device {src.dev.label}  model {tagger.device}  window {args.window:.2f} s  "
+             f"hop {args.hop:.2f} s  gain {args.gain:+.1f} dB  raw audio {'saved' if args.save_wav else 'not saved'}",
+             f"steps    : {', '.join(s.name for s in steps) if args.guided else 'free run'}"]
+    lines += summarize(hops, labels, cmap, thr, args.guided, steps)
     if src.dropped_blocks or src.overflows:
         lines.append(f"WARNING: {src.dropped_blocks} dropped blocks, {src.overflows} input overflows")
     print("\n".join(lines))
