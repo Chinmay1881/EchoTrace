@@ -37,13 +37,28 @@ def groups(events: list[Event]) -> list[list[Event]]:
     return out
 
 
-def group_zone(group: list[Event]) -> str:
-    """Confidence-weighted majority zone of a group (UNKNOWN ignored), so one stray reading can't flip it."""
+LOW_ZONE_WEIGHT = 0.5      # a low-confidence direction counts half in a group's vote
+
+
+def _zone_votes(group: list[Event]) -> dict[str, float]:
     votes: dict[str, float] = {}
     for e in group:
         if e.zone != "UNKNOWN":
-            votes[e.zone] = votes.get(e.zone, 0.0) + e.confidence
+            w = e.confidence * (LOW_ZONE_WEIGHT if e.zone_confidence == "low" else 1.0)
+            votes[e.zone] = votes.get(e.zone, 0.0) + w
+    return votes
+
+
+def group_zone(group: list[Event]) -> str:
+    """Confidence-weighted majority zone of a group (UNKNOWN ignored), so one stray reading can't flip it."""
+    votes = _zone_votes(group)
     return max(votes, key=votes.get) if votes else "UNKNOWN"
+
+
+def group_zone_is_low(group: list[Event]) -> bool:
+    """True if the group's zone rests only on low-confidence readings."""
+    z = group_zone(group)
+    return z != "UNKNOWN" and all(e.zone_confidence == "low" for e in group if e.zone == z)
 
 
 def group_zones(group: list[Event]) -> list[str]:

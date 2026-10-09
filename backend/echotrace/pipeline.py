@@ -201,7 +201,7 @@ class Analyzer:
             if not angs:
                 return Localization("UNKNOWN", None, 0.0, 0, "no simulated angle")
             ang = float(np.median(angs))
-            return Localization(angle_to_zone(ang), round(ang, 1), 1.0, len(angs), "simulated")
+            return Localization(angle_to_zone(ang), round(ang, 1), 1.0, len(angs), "simulated", "high")
         t0 = raw.t_start - config.LOC_PRE_S
         t1 = min(raw.t_end, t0 + config.LOC_MAX_SPAN_S)
         return self.localizer.localize(self.ring.get(t0, t1))
@@ -211,7 +211,7 @@ class Analyzer:
         self._n_events += 1
         ev = Event(f"{self.id_prefix}e{self._n_events}", raw.t_start, raw.t_end, raw.category, raw.label,
                    round(float(raw.confidence), 3), loc.zone, loc.angle_deg, self.wall(raw.t_start),
-                   raw.capture_time)
+                   raw.capture_time, loc.zone_confidence)
         return self.add_event(ev)
 
     def add_event(self, ev: Event) -> list[Out]:
@@ -257,6 +257,7 @@ class Analyzer:
             **self._base(self.t),
             "id": ev.id, "t_start": ev.t_start, "t_end": ev.t_end, "category": ev.category, "label": ev.label,
             "confidence": ev.confidence, "zone": ev.zone, "angle_deg": ev.angle_deg,
+            "zone_confidence": ev.zone_confidence if ev.zone != "UNKNOWN" else None,
         }}
         return [(event, ev.capture_time), (seq, ev.capture_time), (self.status(self.t), None)]
 

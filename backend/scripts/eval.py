@@ -31,6 +31,7 @@ def run_clip(label: dict, tagger) -> ClipResult:
     wav = EVAL_DIR / label["wav"]
     _, an = run_wav_detailed(wav, tagger, keep_frames=False, start_wall=datetime(2026, 1, 1))
     events = [{"id": e.id, "category": e.category, "zone": e.zone, "confidence": e.confidence,
+               "zone_confidence": e.zone_confidence if e.zone != "UNKNOWN" else None,
                "label": e.label, "t_start": e.t_start, "t_end": e.t_end} for e in an.events]
     return ClipResult(label["clip"], label["expected_pattern"], label["expected_risk"], label["events"],
                       events, list(an.alerts), len(an.baseline.alerts))
@@ -138,6 +139,8 @@ def markdown(m: dict, results: list[ClipResult]) -> str:
         f"| Total alerts, all clips | {tot['echotrace_alerts']} | {tot['baseline_alerts']} |",
         f"| L/C/R accuracy ({lc['events']} events, {lc['unknown']} UNKNOWN counted wrong) | "
         f"{fmt_pct(lc['accuracy'])} | n/a |",
+        f"| ...of which low-confidence zones right / wrong (shown with \"?\") | {lc.get('low_correct', 0)} / "
+        f"{lc.get('low_wrong', 0)} | |",
         f"| Latency mean / p95 | {'not measured' if lat['mean'] is None else f'{lat['mean']:.0f} / {lat['p95']:.0f} ms'} | |",
         "",
         "## Per clip",
@@ -175,65 +178,73 @@ def profile_info(mode: str) -> dict:
             "thresholds": {c: list(config.thresholds(c, mode)) for c in config.CATEGORIES}}
 
 
-def evaluate(mode: str, labels: list[dict], tagger) -> tuple[list[ClipResult], dict]:
-    """All labelled clips under one sensitivity profile (thresholds + gain)."""
+DIRECTION = {True: "v2: 40-60% vote -> low-confidence zone", False: "v1: UNKNOWN below 60% vote"}
+
+
+def evaluate(mode: str, labels: list[dict], tagger, low_tier: bool = True) -> tuple[list[ClipResult], dict]:
+    """All labelled clips under one sensitivity profile (thresholds + gain) and direction logic."""
     config.set_sensitivity(mode)
     tagger.gain_db = config.tagger_gain_db()
-    results = []
-    for label in labels:
-        print(f"  [{mode}] {label['clip']} ...", flush=True)
-        results.append(run_clip(label, tagger))
+    saved_low = config.LOC_LOW_VOTE
+    config.LOC_LOW_VOTE = saved_low if low_tier else None
+    try:
+        results = []
+        for label in labels:
+            print(f"  [{mode}, direction {'v2' if low_tier else 'v1'}] {label['clip']} ...", flush=True)
+            results.append(run_clip(label, tagger))
+    finally:
+        config.LOC_LOW_VOTE = saved_low
     m = build_metrics(results, {"mean": None, "p95": None, "n": 0, "sources": [], "note": ""})
-    summary = {**profile_info(mode), "sequence_accuracy": m["sequence_accuracy"],
+    summary = {**profile_info(mode), "direction": DIRECTION[low_tier], "sequence_accuracy": m["sequence_accuracy"],
                "clips_ok": sum(r.ok for r in results), "clips": len(results), "lcr_accuracy": m["lcr_accuracy"],
                "lcr": m["lcr"], "detection": m["detection"], "false_alerts": m["false_alerts_detail"],
                "totals": m["totals"], "per_clip": m["per_clip"]}
     return results, summary
 
 
-def comparison_md(main_mode: str, summaries: dict[str, dict]) -> list[str]:
-    modes = [main_mode] + [k for k in summaries if k != main_mode]
+def comparison_md(main_key: str, summaries: dict[str, dict]) -> list[str]:
+    keys = [main_key] + [k for k in summaries if k != main_key]
+    S = summaries
 
     def thr(s):
         t = s["thresholds"]
         imp = t["IMPACT"]
         rest = sorted({tuple(v) for c, v in t.items() if c != "IMPACT"})
-        others = ", ".join(f"{on:.2f}/{off:.2f}" for on, off in rest)
-        return f"IMPACT {imp[0]:.2f}/{imp[1]:.2f}, others {others}"
+        return f"IMPACT {imp[0]:.2f}/{imp[1]:.2f}, others " + ", ".join(f"{a:.2f}/{b:.2f}" for a, b in rest)
 
-    md = ["", "## Sensitivity: thresholds were changed after the first evaluation (disclosure)", "",
-          "The first evaluation used the `normal` profile. Because real sounds in the room were often recognised "
-          "below threshold in live use, the detection thresholds were then lowered (`high` profile, used for the "
-          "demo). Before adopting it, `high` was checked on speech and silence only: 0 events on the background "
-          "and chatter clips, and 0 new events in the BACKGROUND/CHATTER steps of three logged guided runs (the "
-          "highest speech/silence category score was 0.03). The `high` thresholds were nevertheless chosen after "
-          "seeing the `normal` results on these clips, so these 10 clips are no longer a fully independent test. "
-          "Both results are shown.", "",
-          "| | " + " | ".join(f"`{m}`{' (demo)' if m == main_mode else ''}" for m in modes) + " |",
-          "|---|" + "---|" * len(modes),
-          "| on/off thresholds | " + " | ".join(thr(summaries[m]) for m in modes) + " |",
-          "| tagger gain | " + " | ".join(f"+{summaries[m]['gain_db']:.0f} dB" for m in modes) + " |",
-          "| Sequence accuracy | " + " | ".join(
-              f"{fmt_pct(summaries[m]['sequence_accuracy'])} ({summaries[m]['clips_ok']}/{summaries[m]['clips']})"
-              for m in modes) + " |",
-          "| L/C/R accuracy | " + " | ".join(
-              f"{fmt_pct(summaries[m]['lcr_accuracy'])} ({summaries[m]['lcr']['correct']}/{summaries[m]['lcr']['events']}, "
-              f"{summaries[m]['lcr']['unknown']} UNKNOWN)" for m in modes) + " |"]
-    cats = list(summaries[main_mode]["detection"])
-    for c in cats:
-        md.append(f"| Detection {c} | " + " | ".join(
-            f"{summaries[m]['detection'].get(c, {}).get('detected', 0)}/{summaries[m]['detection'].get(c, {}).get('labelled', 0)}"
-            for m in modes) + " |")
-    md += ["| Alerts on no-incident clips (EchoTrace vs baseline) | " + " | ".join(
-               f"{summaries[m]['false_alerts']['echotrace']} vs {summaries[m]['false_alerts']['baseline']}"
-               for m in modes) + " |",
-           "| Alerts on all clips (EchoTrace vs baseline) | " + " | ".join(
-               f"{summaries[m]['totals']['echotrace_alerts']} vs {summaries[m]['totals']['baseline_alerts']}"
-               for m in modes) + " |",
-           "| Clips that fail | " + " | ".join(
-               ", ".join(p["clip"] for p in summaries[m]["per_clip"] if not p["ok"]) or "none" for m in modes) + " |"]
+    def row(name, fn):
+        return f"| {name} | " + " | ".join(fn(S[k]) for k in keys) + " |"
+
+    md = ["", "## Changes after the first evaluation (disclosure)", "",
+          "Two changes were made **after** seeing earlier results on these same 10 clips, so they are no longer a "
+          "fully independent test. Every version is re-run from code below.", "",
+          "1. **Sensitivity** (`normal` -> `high`): detection thresholds were lowered because real sounds were often "
+          "recognised below threshold in live use. Checked first on speech and silence only: 0 events on the "
+          "background and chatter clips and in the BACKGROUND/CHATTER steps of three logged guided runs (highest "
+          "speech/silence category score 0.03).",
+          "2. **Direction logic** (v1 -> v2): a best-guess zone with 40-60% frame agreement is now reported as "
+          "*low confidence* instead of UNKNOWN (shown faded with a \"?\" on the dashboard). Low-confidence zones "
+          "count as normal predictions in L/C/R accuracy and are also reported separately. An inter-channel level "
+          "difference (ILD) cue, a 300-3000 Hz GCC band and SNR-weighted voting over more frames were also measured "
+          "on these clips and **rejected** (no gain, or more confident wrong zones on table impacts).", "",
+          "| | " + " | ".join(f"{k}{' **(demo)**' if k == main_key else ''}" for k in keys) + " |",
+          "|---|" + "---|" * len(keys),
+          row("on/off thresholds", thr),
+          row("direction logic", lambda s: s["direction"]),
+          row("Sequence accuracy", lambda s: f"{fmt_pct(s['sequence_accuracy'])} ({s['clips_ok']}/{s['clips']})"),
+          row("L/C/R accuracy", lambda s: f"{fmt_pct(s['lcr_accuracy'])} ({s['lcr']['correct']}/{s['lcr']['events']})"),
+          row("UNKNOWN zones", lambda s: str(s["lcr"]["unknown"])),
+          row("high-confidence zones right / wrong", lambda s: f"{s['lcr']['high_correct']} / {s['lcr']['high_wrong']}"),
+          row("low-confidence zones right / wrong", lambda s: f"{s['lcr']['low_correct']} / {s['lcr']['low_wrong']}")]
+    for c in S[main_key]["detection"]:
+        md.append(row(f"Detection {c}", lambda s, c=c: f"{s['detection'].get(c, {}).get('detected', 0)}/"
+                                                     f"{s['detection'].get(c, {}).get('labelled', 0)}"))
+    md += [row("Alerts on no-incident clips (EchoTrace vs baseline)",
+               lambda s: f"{s['false_alerts']['echotrace']} vs {s['false_alerts']['baseline']}"),
+           row("Alerts on all clips (EchoTrace vs baseline)",
+               lambda s: f"{s['totals']['echotrace_alerts']} vs {s['totals']['baseline_alerts']}"),
+           row("Clips that fail", lambda s: ", ".join(p["clip"] for p in s["per_clip"] if not p["ok"]) or "none")]
     return md
-
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -263,19 +274,19 @@ def main() -> int:
             continue
         label_docs.append(label)
 
+    main_key = f"{args.sensitivity}, direction v2"
     summaries: dict[str, dict] = {}
-    if not args.no_compare:
-        for other in config.SENSITIVITY_PROFILES:
-            if other != args.sensitivity:
-                summaries[other] = evaluate(other, label_docs, tagger)[1]
-    results, summaries[args.sensitivity] = evaluate(args.sensitivity, label_docs, tagger)   # last: stays active
+    if not args.no_compare:          # the history: first eval, after the sensitivity change, now
+        summaries["normal, direction v1 (first eval)"] = evaluate("normal", label_docs, tagger, low_tier=False)[1]
+        summaries["high, direction v1"] = evaluate("high", label_docs, tagger, low_tier=False)[1]
+    results, summaries[main_key] = evaluate(args.sensitivity, label_docs, tagger)   # last: stays active
 
     latency = latency_from_logs(sorted(config.RECORDINGS_DIR.glob("run_*_events.jsonl")))
     m = build_metrics(results, latency)
     m.update(profile_info(args.sensitivity))
     if len(summaries) > 1:
         m["comparison"] = {k: {kk: vv for kk, vv in v.items() if kk != "per_clip"} for k, v in summaries.items()}
-        m["comparison_note"] = ("thresholds were lowered (normal -> high) after the first evaluation; both shown")
+        m["comparison_note"] = ("thresholds (normal -> high) and direction logic (v1 -> v2) were changed after earlier evaluations; all versions shown")
     print()
     print("\n".join(table(results)))
     print()
@@ -294,13 +305,13 @@ def main() -> int:
             print(f"FAILED {r.clip}: {failure_reason(r)}")
     print(f"\n{headline(m)}\n{safer_line(m, results)}")
     if len(summaries) > 1:
-        print("\n".join(comparison_md(args.sensitivity, summaries)))
+        print("\n".join(comparison_md(main_key, summaries)))
     if not args.no_write:
         config.DOCS_DIR.mkdir(exist_ok=True)
         (config.DOCS_DIR / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
         md = markdown(m, results)
         if len(summaries) > 1:
-            md = md.replace("\n## Per clip", "\n".join(comparison_md(args.sensitivity, summaries)) + "\n\n## Per clip", 1)
+            md = md.replace("\n## Per clip", "\n".join(comparison_md(main_key, summaries)) + "\n\n## Per clip", 1)
         (config.DOCS_DIR / "metrics.md").write_text(md, encoding="utf-8")
         print(f"wrote {config.DOCS_DIR / 'metrics.json'} and metrics.md")
     return 0

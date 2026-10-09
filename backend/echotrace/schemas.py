@@ -40,6 +40,7 @@ class EventData(Base):
     confidence: float
     zone: Zone
     angle_deg: float | None
+    zone_confidence: Literal["high", "low"] | None = None   # additive (2026-10-09): "low" = best guess, 40-60% vote
 
 
 class SequenceData(Base):

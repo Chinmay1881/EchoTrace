@@ -73,6 +73,42 @@ def test_uncorrelated_channels_give_unknown():
     assert ZoneLocalizer(CAL).localize(x).zone == "UNKNOWN"
 
 
+@pytest.mark.parametrize("seed", range(12))
+def test_incoherent_noise_is_unknown_for_any_seed(seed):
+    rng = np.random.default_rng(seed)
+    x = rng.standard_normal((int(1.5 * SR), 2)).astype(np.float32)
+    x[int(0.5 * SR):int(0.8 * SR)] *= 20
+    loc = ZoneLocalizer(CAL).localize(x)
+    assert loc.zone == "UNKNOWN" and loc.zone_confidence is None
+
+
+@pytest.mark.parametrize("votes,expect", [
+    ([(7.0, 0.5)] * 10, ("LEFT", "high")),                                   # unanimous
+    ([(7.0, 0.5)] * 5 + [(-7.0, 0.5)] * 4 + [(0.0, 0.5)], ("LEFT", "low")),  # 50% LEFT: best guess
+    ([(7.0, 0.5)] * 3 + [(-7.0, 0.5)] * 4 + [(0.0, 0.5)] * 3, ("RIGHT", "low")),  # 40%: still a guess
+    ([(7.0, 0.5)] * 3 + [(-7.0, 0.5)] * 3 + [(0.0, 0.5)] * 3, ("UNKNOWN", None)),  # 33%: no usable majority
+    ([(7.0, 0.15)] * 10, ("UNKNOWN", None)),                                 # unanimous but noise-level peaks
+])
+def test_confidence_tiers(monkeypatch, votes, expect):
+    from echotrace.localization import zones
+    monkeypatch.setattr(zones, "frame_lags", lambda *a, **k: votes)
+    loc = ZoneLocalizer(CAL).localize(np.zeros((SR, 2), np.float32))
+    assert (loc.zone, loc.zone_confidence) == expect, loc
+
+
+def test_low_tier_can_be_disabled(monkeypatch):
+    from echotrace import config
+    from echotrace.localization import zones
+    monkeypatch.setattr(zones, "frame_lags", lambda *a, **k: [(7.0, 0.5)] * 5 + [(-7.0, 0.5)] * 5)
+    monkeypatch.setattr(config, "LOC_LOW_VOTE", None)
+    assert ZoneLocalizer(CAL).localize(np.zeros((SR, 2), np.float32)).zone == "UNKNOWN"
+
+
+def test_clear_event_is_high_confidence():
+    loc = ZoneLocalizer(CAL).localize(event_audio(-7.0))
+    assert (loc.zone, loc.zone_confidence) == ("RIGHT", "high")
+
+
 def test_silence_gives_unknown():
     loc = ZoneLocalizer(CAL).localize(np.zeros((SR, 2), np.float32))
     assert loc.zone == "UNKNOWN" and loc.angle_deg is None

@@ -94,7 +94,8 @@ export function AcousticMap({ events, active, now, source }: Props) {
   return (
     <div className="panel map-panel">
       <div className="panel-title">
-        Acoustic map <span className="muted">· top-down, approximate zones · mic pair at the bottom</span>
+        Acoustic map <span className="muted">· top-down, approximate zones · mic pair at the bottom · 2 mics:
+        front/back can't be distinguished; sounds behind the laptop may read as low-confidence or unknown</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="map" preserveAspectRatio="xMidYMid meet">
         <defs>
@@ -151,17 +152,22 @@ export function AcousticMap({ events, active, now, source }: Props) {
         {placed.map(({ ev, x, y, unknown }) => {
           const age = now - ev.t_end;
           const inSeq = activeIds.has(ev.id);
-          const opacity = Math.max(inSeq ? 0.45 : 0, 1 - Math.max(0, age) / FADE_S);
+          const low = ev.zone_confidence === "low";
+          const opacity = Math.max(inSeq ? 0.45 : 0, 1 - Math.max(0, age) / FADE_S) * (low ? 0.6 : 1);
           const color = unknown ? "#6b7785" : CATEGORY_COLOR[ev.category] ?? "#ccc";
           const r = 10 + 14 * ev.confidence;
           return (
             <g key={ev.id} opacity={opacity} className={unknown ? "dot unknown" : "dot"}>
               <circle cx={x} cy={y} r={r} className="pulse" stroke={color} />
-              <circle cx={x} cy={y} r={r} fill={color} stroke={inSeq ? "#fff" : "none"} strokeWidth={3} />
+              <circle cx={x} cy={y} r={r} fill={color} stroke={inSeq ? "#fff" : low ? color : "none"} strokeWidth={3}
+                strokeDasharray={low && !inSeq ? "5 4" : undefined} fillOpacity={low ? 0.55 : 1} />
               {!unknown && labelled.has(ev.id) && (
                 <text x={x} y={y - r - 8} textAnchor="middle" className="dot-label" fill={color}>
-                  {CATEGORY_NAME[ev.category] ?? ev.category} {pct(ev.confidence)}
+                  {CATEGORY_NAME[ev.category] ?? ev.category} {pct(ev.confidence)}{low ? " ?" : ""}
                 </text>
+              )}
+              {low && (
+                <title>{`${ev.zone} (low-confidence direction)`}</title>
               )}
             </g>
           );

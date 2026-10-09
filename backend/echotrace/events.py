@@ -17,3 +17,4 @@ class Event:
     angle_deg: float | None
     wall: str = ""                  # ISO wall time of t_start
     capture_time: float = 0.0       # capture clock of the block that triggered emission (latency)
+    zone_confidence: str | None = None   # "high" | "low" (None = unspecified/UNKNOWN; treated as high)

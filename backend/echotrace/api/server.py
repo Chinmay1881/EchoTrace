@@ -249,7 +249,8 @@ class Engine:
         an = self.pipeline.analyzer
         return {"source": an.source, "t": round(ev.t_end, 3), "wall": an.wall(ev.t_end), "id": ev.id,
                 "t_start": ev.t_start, "t_end": ev.t_end, "category": ev.category, "label": ev.label,
-                "confidence": ev.confidence, "zone": ev.zone, "angle_deg": ev.angle_deg}
+                "confidence": ev.confidence, "zone": ev.zone, "angle_deg": ev.angle_deg,
+                "zone_confidence": ev.zone_confidence if ev.zone != "UNKNOWN" else None}
 
     def events(self) -> list[dict]:
         if self.pipeline is None:

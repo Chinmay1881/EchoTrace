@@ -6,7 +6,7 @@ Wording rules: RED is a "potentially significant sequence", never a confirmed em
 
 from __future__ import annotations
 
-from echotrace.correlation.graph import group_zones, groups
+from echotrace.correlation.graph import group_zone_is_low, group_zones, groups
 from echotrace.correlation.patterns import Match
 from echotrace.events import Event
 
@@ -53,7 +53,10 @@ def _place(group: list[Event]) -> str:
     zones = group_zones(group)
     if group[0].category == "FOOTSTEPS" and len(zones) >= 2:
         return f"moving {' -> '.join(zones)}"
-    return where(zones[0] if zones else "UNKNOWN")
+    text = where(zones[0] if zones else "UNKNOWN")
+    if zones and group[0].category != "FOOTSTEPS" and group_zone_is_low(group):
+        text += " (low-confidence direction)"
+    return text
 
 
 def _describe(group: list[Event], first: bool) -> str:

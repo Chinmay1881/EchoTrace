@@ -70,8 +70,13 @@ function DetailPanel({ seq, events, onBack }: { seq: SequenceData; events: Event
                 <td style={{ color: CATEGORY_COLOR[e.category] }}>{CATEGORY_NAME[e.category] ?? e.category}</td>
                 <td>{e.label}</td>
                 <td>{pct(e.confidence)}</td>
-                <td className={e.zone === "UNKNOWN" ? "muted" : ""}>
-                  {e.zone}{e.angle_deg !== null ? ` (${e.angle_deg > 0 ? "+" : ""}${Math.round(e.angle_deg)}°)` : ""}
+                <td className={e.zone === "UNKNOWN" || e.zone_confidence === "low" ? "muted" : ""}>
+                  {e.zone}
+                  {e.zone_confidence === "low"
+                    ? " (low confidence)"
+                    : e.angle_deg !== null && e.zone !== "UNKNOWN"
+                      ? ` (${e.angle_deg > 0 ? "+" : ""}${Math.round(e.angle_deg)}°)`
+                      : ""}
                 </td>
               </tr>
             ))}

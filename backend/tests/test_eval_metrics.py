@@ -63,8 +63,20 @@ def test_lcr_counts_unknown_as_wrong_and_ignores_unlabelled_categories():
     m = lcr(results())
     # labelled-category events: breakin_a 4 (3 right, 1 UNKNOWN), breakin_b 2 (1 right), lone_thud 3 (2 right)
     # chatter's DOOR is not a labelled category there -> ignored
-    assert m == {"accuracy": round(6 / 9, 3), "events": 9, "correct": 6, "unknown": 1}
-    assert lcr([]) == {"accuracy": None, "events": 0, "correct": 0, "unknown": 0}
+    assert m == {"accuracy": round(6 / 9, 3), "events": 9, "correct": 6, "unknown": 1,
+                 "low_correct": 0, "low_wrong": 0, "high_correct": 6, "high_wrong": 2}
+    assert lcr([])["accuracy"] is None and lcr([])["events"] == 0
+
+
+def test_lcr_scores_low_confidence_zones_as_predictions_and_breaks_them_out():
+    lab = [{"category": "IMPACT", "zone": "RIGHT"}]
+    evs = [{"category": "IMPACT", "zone": "RIGHT", "zone_confidence": "high"},
+           {"category": "IMPACT", "zone": "RIGHT", "zone_confidence": "low"},
+           {"category": "IMPACT", "zone": "CENTRE", "zone_confidence": "low"},
+           {"category": "IMPACT", "zone": "UNKNOWN", "zone_confidence": None}]
+    m = lcr([ClipResult("x", "NONE", "GREEN", lab, evs)])
+    assert m == {"accuracy": 0.5, "events": 4, "correct": 2, "unknown": 1,
+                 "low_correct": 1, "low_wrong": 1, "high_correct": 1, "high_wrong": 0}
 
 
 def test_detection_per_category():

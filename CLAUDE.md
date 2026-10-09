@@ -113,6 +113,15 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       no-incident, 7 vs 56 total; normal: 7/10, 76%, 0 vs 19, 3 vs 49. metrics.md discloses the post-hoc change
       and shows both. --sensitivity on serve.py / run_pipeline.py / live_topk.py / eval.py; tests pin "normal"
       (tests/conftest.py). frontend labels.ts CATEGORY_THRESHOLDS mirrors both profiles.
+      Direction v2 (~15:30): low-confidence tier (config.LOC_LOW_VOTE 0.4; None = old behaviour) + LOC_MIN_PEAK
+      0.10 -> 0.25 (incoherent noise peaks <= 0.18, real events >= 0.29; 0.10 let noise through even as "high").
+      Eval high: L/C/R 71% -> 82%, UNKNOWN 14 -> 1, seq 90% unchanged; low-confidence 6 right / 7 wrong,
+      high-confidence 40/2. Measured and REJECTED: ILD cue (LEFT +1.5 dB median but RIGHT ~0 dB = CENTRE; no gain),
+      300-3000 Hz band and SNR-weighted all-frame voting (turn table impacts into confident wrong CENTRE).
+      RIGHT impacts (book drops on the table) are the weak spot - structure-borne sound reaches both mics together.
+      Not adopted (would be tuning on 13 events): low-tier peak floor 0.40 -> low guesses 5/1 but 45 correct, 8 UNKNOWN.
+      Low-confidence zones count half in trajectory/group votes (graph.LOW_ZONE_WEIGHT).
+      Rule: before starting any test server check :8000; stop only my own PID (user's server was killed once).
       docs/backend_readme_section.md for Person B's README.
 - [ ] Phase 6 — Open-source polish
 
@@ -201,6 +210,8 @@ All messages `{type, data}`. Every data has `source` ("LIVE"|"RECORDED"|"SIMULAT
 - sequence: `{id, event_ids, pattern, risk:"GREEN"|"AMBER"|"RED", explanation:[str], summary, trajectory:[zone,...]}`
 - status: `{risk, latency_ms, device, host_api, sample_rate, channels, localization:"ON"|"OFF", model_device:"cpu"|"cuda", dropped_blocks, sensitivity:"normal"|"high"}`
   (`sensitivity` added 2026-10-09 ~15:00 at the user's request: the active detection-threshold profile)
+- event (additive, 2026-10-09 ~15:30): optional `zone_confidence: "high"|"low"|null` - "low" = best-guess zone from
+  40-60% frame agreement (dashboard: faded dot with "?", "LEFT (low confidence)"); null when zone is UNKNOWN.
 latency_ms = capture of the audio block that triggered the event -> WS send time.
 
 GET /api/metrics returns docs/metrics.json AS-IS (no rewriting; extra keys pass through), or {} if missing

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T15:15:12",
+  "generated_at": "2026-10-09T15:34:08",
   "clips": 10,
   "sequence_accuracy": 0.9,
   "false_alerts": {
@@ -7,7 +7,7 @@
     "baseline": 20,
     "reduction_pct": 100.0
   },
-  "lcr_accuracy": 0.714,
+  "lcr_accuracy": 0.821,
   "latency_ms": {
     "mean": null,
     "p95": null
@@ -86,10 +86,14 @@
     "events_detected": 56
   },
   "lcr": {
-    "accuracy": 0.714,
+    "accuracy": 0.821,
     "events": 56,
-    "correct": 40,
-    "unknown": 14
+    "correct": 46,
+    "unknown": 1,
+    "low_correct": 6,
+    "low_wrong": 7,
+    "high_correct": 40,
+    "high_wrong": 2
   },
   "detection": {
     "GLASS": {
@@ -132,8 +136,8 @@
         "GLASS@LEFT",
         "GLASS@LEFT",
         "GLASS@LEFT",
-        "IMPACT@UNKNOWN",
-        "GLASS@UNKNOWN",
+        "IMPACT@LEFT",
+        "GLASS@LEFT",
         "IMPACT@RIGHT",
         "ALARM@CENTRE",
         "ALARM@CENTRE"
@@ -159,13 +163,13 @@
       "got": "NONE/GREEN",
       "ok": false,
       "events": [
-        "IMPACT@UNKNOWN",
+        "IMPACT@RIGHT",
         "IMPACT@CENTRE",
-        "IMPACT@UNKNOWN",
-        "IMPACT@UNKNOWN",
-        "IMPACT@UNKNOWN",
+        "IMPACT@LEFT",
         "IMPACT@CENTRE",
-        "IMPACT@UNKNOWN"
+        "IMPACT@CENTRE",
+        "IMPACT@CENTRE",
+        "IMPACT@RIGHT"
       ],
       "echotrace_alerts": 0,
       "baseline_alerts": 7,
@@ -179,10 +183,10 @@
       "events": [
         "GLASS@LEFT",
         "GLASS@LEFT",
-        "IMPACT@UNKNOWN",
+        "IMPACT@RIGHT",
         "ALARM@CENTRE",
         "ALARM@CENTRE",
-        "IMPACT@UNKNOWN",
+        "IMPACT@CENTRE",
         "GLASS@LEFT"
       ],
       "echotrace_alerts": 2,
@@ -208,7 +212,7 @@
       "events": [
         "GLASS@LEFT",
         "GLASS@LEFT",
-        "IMPACT@UNKNOWN",
+        "IMPACT@RIGHT",
         "ALARM@CENTRE",
         "ALARM@CENTRE",
         "ALARM@CENTRE"
@@ -246,8 +250,8 @@
       "events": [
         "GLASS@LEFT",
         "IMPACT@UNKNOWN",
-        "GLASS@UNKNOWN",
-        "GLASS@UNKNOWN",
+        "GLASS@LEFT",
+        "GLASS@RIGHT",
         "GLASS@LEFT",
         "GLASS@LEFT",
         "GLASS@LEFT",
@@ -310,7 +314,7 @@
       "got": "NONE/GREEN",
       "ok": true,
       "events": [
-        "IMPACT@UNKNOWN"
+        "IMPACT@CENTRE"
       ],
       "echotrace_alerts": 0,
       "baseline_alerts": 1,
@@ -346,7 +350,7 @@
     ]
   },
   "comparison": {
-    "normal": {
+    "normal, direction v1 (first eval)": {
       "sensitivity": "normal",
       "gain_db": 20.0,
       "thresholds": {
@@ -375,6 +379,7 @@
           0.15
         ]
       },
+      "direction": "v1: UNKNOWN below 60% vote",
       "sequence_accuracy": 0.7,
       "clips_ok": 7,
       "clips": 10,
@@ -383,7 +388,11 @@
         "accuracy": 0.755,
         "events": 49,
         "correct": 37,
-        "unknown": 10
+        "unknown": 10,
+        "low_correct": 0,
+        "low_wrong": 0,
+        "high_correct": 37,
+        "high_wrong": 2
       },
       "detection": {
         "GLASS": {
@@ -411,7 +420,7 @@
         "events_detected": 49
       }
     },
-    "high": {
+    "high, direction v1": {
       "sensitivity": "high",
       "gain_db": 20.0,
       "thresholds": {
@@ -440,6 +449,7 @@
           0.1
         ]
       },
+      "direction": "v1: UNKNOWN below 60% vote",
       "sequence_accuracy": 0.9,
       "clips_ok": 9,
       "clips": 10,
@@ -448,7 +458,81 @@
         "accuracy": 0.714,
         "events": 56,
         "correct": 40,
-        "unknown": 14
+        "unknown": 14,
+        "low_correct": 0,
+        "low_wrong": 0,
+        "high_correct": 40,
+        "high_wrong": 2
+      },
+      "detection": {
+        "GLASS": {
+          "labelled": 6,
+          "detected": 5
+        },
+        "IMPACT": {
+          "labelled": 6,
+          "detected": 6
+        },
+        "ALARM": {
+          "labelled": 5,
+          "detected": 4
+        }
+      },
+      "false_alerts": {
+        "echotrace": 0,
+        "baseline": 20,
+        "reduction_pct": 100.0,
+        "clips": 5
+      },
+      "totals": {
+        "echotrace_alerts": 7,
+        "baseline_alerts": 56,
+        "events_detected": 56
+      }
+    },
+    "high, direction v2": {
+      "sensitivity": "high",
+      "gain_db": 20.0,
+      "thresholds": {
+        "FOOTSTEPS": [
+          0.2,
+          0.1
+        ],
+        "IMPACT": [
+          0.12,
+          0.06
+        ],
+        "DISTRESS": [
+          0.2,
+          0.1
+        ],
+        "ALARM": [
+          0.2,
+          0.1
+        ],
+        "GLASS": [
+          0.2,
+          0.1
+        ],
+        "DOOR": [
+          0.2,
+          0.1
+        ]
+      },
+      "direction": "v2: 40-60% vote -> low-confidence zone",
+      "sequence_accuracy": 0.9,
+      "clips_ok": 9,
+      "clips": 10,
+      "lcr_accuracy": 0.821,
+      "lcr": {
+        "accuracy": 0.821,
+        "events": 56,
+        "correct": 46,
+        "unknown": 1,
+        "low_correct": 6,
+        "low_wrong": 7,
+        "high_correct": 40,
+        "high_wrong": 2
       },
       "detection": {
         "GLASS": {
@@ -477,5 +561,5 @@
       }
     }
   },
-  "comparison_note": "thresholds were lowered (normal -> high) after the first evaluation; both shown"
+  "comparison_note": "thresholds (normal -> high) and direction logic (v1 -> v2) were changed after earlier evaluations; all versions shown"
 }

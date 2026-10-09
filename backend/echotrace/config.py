@@ -100,9 +100,16 @@ LOC_FRAME_HOP = 512
 LOC_MAX_FRAMES = 12            # highest-energy frames near the onset that get a vote
 LOC_PRE_S = 0.5                # audio before t_start included in the search
 LOC_MAX_SPAN_S = 2.5
-LOC_MIN_VOTE = 0.6             # winning zone needs at least this share of the (peak-weighted) votes, else UNKNOWN
+LOC_MIN_VOTE = 0.6             # winning zone needs at least this share of the (peak-weighted) votes -> "high"
                                # (live run 12:33: an IMPACT read LEFT and 2 ALARMs read RIGHT among correct ones)
-LOC_MIN_PEAK = 0.10            # mean GCC-PHAT peak of the winning frames; below -> UNKNOWN
+# A best guess with LOC_LOW_VOTE..LOC_MIN_VOTE agreement is reported with zone_confidence "low" instead of
+# UNKNOWN (None disables the tier). Eval (high sensitivity): L/C/R 71% -> 82%, UNKNOWN 14 -> 1; the low-confidence
+# guesses were right 6/13 (high-confidence 40/42). ILD (level difference) and wider frame selection / a
+# 300-3000 Hz band were also measured and rejected: no gain, or more confident wrong zones on table impacts.
+LOC_LOW_VOTE: float | None = 0.4
+LOC_MIN_PEAK = 0.25            # mean GCC-PHAT peak of the winning frames; below -> UNKNOWN ("no usable evidence").
+                               # Incoherent noise peaks <= 0.18 (40 seeds; 0.10 let noise through, even as "high");
+                               # every real eval event peaks >= 0.29.
 LOC_CHECK_EVERY_S = 5.0        # how often the channels are re-checked for being identical (-> localization OFF)
 AUDIO_RING_S = 15.0            # raw stereo kept in memory for localization (never written to disk)
 # Without a calibration file: guided runs #2/#3 showed raw positive lag (right channel later) = LEFT.

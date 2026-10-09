@@ -75,18 +75,25 @@ def totals(results: list[ClipResult]) -> dict:
 
 
 def lcr(results: list[ClipResult]) -> dict:
-    n = correct = unknown = 0
+    """Low-confidence zones count as normal predictions in `accuracy`; they're also broken out separately."""
+    n = correct = unknown = low_ok = low_wrong = 0
     for r in results:
         want = {lab["category"]: lab["zone"] for lab in r.labelled}
         for ev in r.events:
             if ev["category"] not in want:
                 continue
             n += 1
+            low = ev.get("zone_confidence") == "low"
             if ev["zone"] == "UNKNOWN":
                 unknown += 1
             elif ev["zone"] == want[ev["category"]]:
                 correct += 1
-    return {"accuracy": round(correct / n, 3) if n else None, "events": n, "correct": correct, "unknown": unknown}
+                low_ok += low
+            else:
+                low_wrong += low
+    return {"accuracy": round(correct / n, 3) if n else None, "events": n, "correct": correct, "unknown": unknown,
+            "low_correct": low_ok, "low_wrong": low_wrong,
+            "high_correct": correct - low_ok, "high_wrong": n - unknown - correct - low_wrong}
 
 
 def detection(results: list[ClipResult]) -> dict:

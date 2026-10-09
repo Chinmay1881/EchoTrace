@@ -30,6 +30,7 @@ export interface EventData extends Base {
   confidence: number;
   zone: Zone;
   angle_deg: number | null; // + = RIGHT, - = LEFT
+  zone_confidence?: "high" | "low" | null; // additive: "low" = best guess (40-60% agreement); null when UNKNOWN
 }
 
 export interface SequenceData extends Base {

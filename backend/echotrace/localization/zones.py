@@ -78,6 +78,7 @@ class Localization:
     confidence: float          # winning vote share x mean GCC peak, 0..1
     frames: int
     reason: str = ""
+    zone_confidence: str | None = None   # "high" | "low"; None when the zone is UNKNOWN
 
 
 class ZoneLocalizer:
@@ -105,9 +106,11 @@ class ZoneLocalizer:
         mean_peak = float(np.mean([p for _, p in per_zone[zone]]))
         angle = float(np.median(angs))
         conf = float(share * min(1.0, mean_peak))
-        if share < config.LOC_MIN_VOTE:
-            return Localization("UNKNOWN", angle, conf, len(lags), f"frames disagree ({share:.0%} for {zone})")
         if mean_peak < config.LOC_MIN_PEAK:
             return Localization("UNKNOWN", angle, conf, len(lags), f"weak GCC-PHAT peak ({mean_peak:.2f})")
-        return Localization(zone, round(angle, 1), round(conf, 3), len(lags),
-                            f"{len(per_zone[zone])}/{len(lags)} frames vote {zone}")
+        why = f"{len(per_zone[zone])}/{len(lags)} frames vote {zone} ({share:.0%})"
+        if share >= config.LOC_MIN_VOTE:
+            return Localization(zone, round(angle, 1), round(conf, 3), len(lags), why, "high")
+        if config.LOC_LOW_VOTE is not None and share >= config.LOC_LOW_VOTE:
+            return Localization(zone, round(angle, 1), round(conf, 3), len(lags), why + ", low confidence", "low")
+        return Localization("UNKNOWN", angle, conf, len(lags), f"frames disagree ({share:.0%} for {zone})")
