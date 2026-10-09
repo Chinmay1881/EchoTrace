@@ -1,0 +1,98 @@
+==============================================================================
+SUMMARY  (250 hops counted, threshold 0.30)
+------------------------------------------------------------------------------
+category       max   mean  hops>=thr
+FOOTSTEPS     0.13  0.012          0
+IMPACT        0.03  0.002          0
+DISTRESS      0.02  0.001          0
+ALARM         0.00  0.001          0
+GLASS         0.02  0.002          0
+DOOR          0.06  0.005          0
+------------------------------------------------------------------------------
+Top 10 labels overall (by max probability):
+  Speech                                   max 0.91  mean 0.754
+  Music                                    max 0.82  mean 0.082
+  Sheep                                    max 0.75  mean 0.008
+  Burping, eructation                      max 0.74  mean 0.006
+  Bleat                                    max 0.66  mean 0.007
+  Pigeon, dove                             max 0.62  mean 0.011
+  Bird                                     max 0.61  mean 0.016
+  Chop                                     max 0.58  mean 0.015
+  Hammer                                   max 0.54  mean 0.005
+  Clip-clop                                max 0.35  mean 0.025
+------------------------------------------------------------------------------
+Per-step breakdown
+
+[BACKGROUND] 40 hops, expect nothing, sound at -
+  other categories >= thr: none
+  category max: FOOT 0.09  IMP 0.01  DIST 0.01  ALARM 0.00  GLASS 0.02  DOOR 0.02
+  top labels:   Speech 0.87 | Music 0.82 | Chop 0.58 | Hammer 0.54 | Clip-clop 0.35
+  level: median -42.4 dBFS, loudest-quarter -39.3 dBFS (+3.1 dB vs background)
+  channels: corr all +0.775  loud +0.650
+  GCC-PHAT lag (samples, + = right ch. later): all median -2.08 (sd 4.78)  loud median -3.80 (sd 3.82, values -8.1, -6.7, +3.9, -0.3, -6.2, -2.3)  peak 0.36  ~-25 deg
+
+[FOOTSTEPS] 30 hops, expect FOOTSTEPS, sound at LEFT
+  FOOTSTEPS: max 0.06  mean 0.013  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.06  IMP 0.03  DIST 0.00  ALARM 0.00  GLASS 0.01  DOOR 0.03
+  top labels:   Speech 0.91 | Pigeon, dove 0.62 | Bird 0.61 | Music 0.31 | Chopping (food) 0.29
+  level: median -44.6 dBFS, loudest-quarter -41.8 dBFS (+0.5 dB vs background)
+  channels: corr all +0.898  loud +0.907
+  GCC-PHAT lag (samples, + = right ch. later): all median +0.42 (sd 3.11)  loud median -0.31 (sd 2.24, values +0.5, +0.9, -1.8, -0.3, -5.9, -0.8)  peak 0.36  ~-2 deg
+
+[IMPACT] 30 hops, expect IMPACT, sound at RIGHT
+  IMPACT: max 0.01  mean 0.001  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.07  IMP 0.01  DIST 0.00  ALARM 0.00  GLASS 0.01  DOOR 0.02
+  top labels:   Speech 0.88 | Sheep 0.75 | Bleat 0.66 | Animal 0.33 | Vehicle 0.31
+  level: median -45.4 dBFS, loudest-quarter -40.9 dBFS (+1.5 dB vs background)
+  channels: corr all +0.924  loud +0.947
+  GCC-PHAT lag (samples, + = right ch. later): all median -1.20 (sd 4.28)  loud median +0.59 (sd 0.38, values +0.6, +0.5, +0.8, -0.0, +0.9, -0.1)  peak 0.40  ~+4 deg
+
+[DISTRESS] 30 hops, expect DISTRESS, sound at RIGHT
+  DISTRESS: max 0.02  mean 0.003  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.04  IMP 0.00  DIST 0.02  ALARM 0.00  GLASS 0.00  DOOR 0.01
+  top labels:   Speech 0.89 | Burping, eructation 0.74 | Music 0.41 | Air conditioning 0.30 | Male speech, man speaking 0.29
+  level: median -44.9 dBFS, loudest-quarter -37.1 dBFS (+5.3 dB vs background)
+  channels: corr all +0.888  loud +0.882
+  GCC-PHAT lag (samples, + = right ch. later): all median +1.75 (sd 3.31)  loud median +1.45 (sd 2.44, values +1.4, -4.3, +4.5, +1.7, +1.8, +0.6)  peak 0.47  ~+9 deg
+
+[ALARM] 30 hops, expect ALARM, sound at CENTRE
+  ALARM: max 0.00  mean 0.001  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.13  IMP 0.01  DIST 0.00  ALARM 0.00  GLASS 0.01  DOOR 0.01
+  top labels:   Speech 0.90 | Music 0.36 | Tick-tock 0.26 | Male speech, man speaking 0.25 | Mantra 0.18
+  level: median -44.6 dBFS, loudest-quarter -38.5 dBFS (+3.9 dB vs background)
+  channels: corr all +0.906  loud +0.915
+  GCC-PHAT lag (samples, + = right ch. later): all median +0.31 (sd 4.54)  loud median +0.34 (sd 2.89, values +0.8, -5.1, +0.3, -0.5, +1.6, +1.5)  peak 0.32  ~+2 deg
+
+[GLASS] 30 hops, expect GLASS, sound at LEFT
+  GLASS: max 0.00  mean 0.001  hops>=thr 0/30  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.06  IMP 0.02  DIST 0.00  ALARM 0.00  GLASS 0.00  DOOR 0.06
+  top labels:   Speech 0.87 | Vehicle 0.25 | Male speech, man speaking 0.22 | Music 0.17 | Chatter 0.15
+  level: median -48.7 dBFS, loudest-quarter -46.7 dBFS (-4.4 dB vs background)
+  channels: corr all +0.931  loud +0.932
+  GCC-PHAT lag (samples, + = right ch. later): all median +4.98 (sd 3.78)  loud median +4.67 (sd 4.05, values -1.4, +5.9, -5.5, +4.7, +4.2, +5.7)  peak 0.17  ~+31 deg
+
+[KNOCK] 20 hops, expect IMPACT, sound at RIGHT
+  IMPACT: max 0.00  mean 0.001  hops>=thr 0/20  -> MISSED
+  other categories >= thr: none
+  category max: FOOT 0.07  IMP 0.00  DIST 0.00  ALARM 0.00  GLASS 0.02  DOOR 0.02
+  top labels:   Speech 0.88 | Male speech, man speaking 0.27 | Train 0.23 | Vehicle 0.21 | Music 0.19
+  level: median -44.8 dBFS, loudest-quarter -40.7 dBFS (+1.7 dB vs background)
+  channels: corr all +0.890  loud +0.898
+  GCC-PHAT lag (samples, + = right ch. later): all median -1.53 (sd 4.28)  loud median -1.74 (sd 2.93, values +0.3, -1.7, +1.1, -6.0, -5.5)  peak 0.35  ~-11 deg
+
+[CHATTER] 40 hops, expect nothing, sound at CENTRE
+  other categories >= thr: none
+  category max: FOOT 0.03  IMP 0.00  DIST 0.00  ALARM 0.00  GLASS 0.00  DOOR 0.01
+  top labels:   Speech 0.91 | Music 0.40 | Male speech, man speaking 0.25 | Air conditioning 0.17 | Female speech, woman speaking 0.17
+  level: median -45.9 dBFS, loudest-quarter -42.7 dBFS (-0.3 dB vs background)
+  channels: corr all +0.915  loud +0.918
+  GCC-PHAT lag (samples, + = right ch. later): all median +0.11 (sd 4.81)  loud median -0.07 (sd 3.89, values -5.7, +0.3, +5.8, +0.0, -0.2, -5.7)  peak 0.29  ~-0 deg
+
+Lag guide: physical max is +/-9.1 samples; |lag| < ~3.1 is CENTRE. The sign for LEFT/RIGHT
+is fixed later by calibrate_direction.py - here, check LEFT and RIGHT steps have opposite signs.
+==============================================================================
