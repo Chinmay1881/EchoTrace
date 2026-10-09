@@ -1,0 +1,13 @@
+{
+  "clip": "lone_alarm_01",
+  "wav": "lone_alarm_01.wav",
+  "expected_pattern": "NONE",
+  "expected_risk": "GREEN",
+  "events": [
+    {
+      "category": "ALARM",
+      "zone": "CENTRE"
+    }
+  ],
+  "notes": "Alarm clip CENTRE only. Should be logged, no alert."
+}

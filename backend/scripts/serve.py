@@ -2,7 +2,7 @@
 
   python scripts/serve.py                         # LIVE mic (falls back to SIMULATED, labelled, if it can't open)
   python scripts/serve.py --source sim            # SIMULATED scenario (demo + break-in)
-  python scripts/serve.py --source wav --file recordings\\demo_sequence.wav
+  python scripts/serve.py --source recorded --file demo_backup.wav   # backup demo (loops, labelled RECORDED)
   python scripts/serve.py --host 0.0.0.0          # reachable from other devices on the network
 
 Switch sources at runtime from the dashboard or with POST /api/mode.
@@ -17,13 +17,14 @@ import uvicorn
 
 from echotrace.api.server import FRONTEND_DIST, Engine, create_app
 
-SOURCE = {"live": "LIVE", "wav": "RECORDED", "sim": "SIMULATED"}
+SOURCE = {"live": "LIVE", "recorded": "RECORDED", "wav": "RECORDED", "sim": "SIMULATED"}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--source", choices=list(SOURCE), default="live")
-    ap.add_argument("--file", help="WAV for --source wav (default: newest recordings/demo*.wav)")
+    ap.add_argument("--file", help="WAV for --source recorded: a path or a name in recordings/eval/ "
+                                   "(default: recordings/eval/demo_backup.wav)")
     ap.add_argument("--device", help="input device name substring for LIVE")
     ap.add_argument("--scenario", default="all", help="SIMULATED scenario: demo | breakin | all")
     ap.add_argument("--host", default="127.0.0.1")

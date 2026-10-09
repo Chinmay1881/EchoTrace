@@ -44,19 +44,26 @@ class ModeError(Exception):
         self.code = code
 
 
+EVAL_DIR = config.RECORDINGS_DIR / "eval"
+
+
 def default_demo_clip() -> Path | None:
+    preferred = EVAL_DIR / config.RECORDED_DEFAULT_CLIP
+    if preferred.is_file():
+        return preferred
     clips = sorted(config.RECORDINGS_DIR.glob("demo*.wav"), key=lambda p: p.stat().st_mtime, reverse=True)
     return clips[0] if clips else None
 
 
 def resolve_wav(file: str | None) -> Path:
+    """A path, or a bare filename looked up in recordings/eval/, recordings/ and the repo root."""
     if not file:
         clip = default_demo_clip()
         if clip is None:
-            raise ModeError("RECORDED needs a file: none given and no recordings/demo*.wav found")
+            raise ModeError(f"RECORDED needs a file: none given and no recordings/eval/{config.RECORDED_DEFAULT_CLIP}")
         return clip
     p = Path(file)
-    for cand in (p, config.REPO_DIR / p, config.RECORDINGS_DIR / p):
+    for cand in (p, EVAL_DIR / p, config.RECORDINGS_DIR / p, config.REPO_DIR / p):
         if cand.is_file():
             if cand.suffix.lower() != ".wav":
                 raise ModeError(f"{cand.name} is not a .wav file")
@@ -135,7 +142,9 @@ class Engine:
                 if source == "LIVE":
                     src = LiveMicSource(device).start()           # open now so failures are reported here
                 elif source == "RECORDED":
-                    src = WavReplaySource(wav, realtime=self.realtime).start()
+                    # real time, looping with a silent gap: a repeatable backup demo, labelled RECORDED
+                    src = WavReplaySource(wav, realtime=self.realtime, loop=config.RECORDED_LOOP,
+                                          gap_s=config.RECORDED_LOOP_GAP_S).start()
                 else:
                     src = SimSource(realtime=self.realtime, scenario=scenario or "all").start()
             except Exception as e:

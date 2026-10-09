@@ -1,0 +1,13 @@
+{
+  "clip": "lone_thud_01",
+  "wav": "lone_thud_01.wav",
+  "expected_pattern": "NONE",
+  "expected_risk": "GREEN",
+  "events": [
+    {
+      "category": "IMPACT",
+      "zone": "RIGHT"
+    }
+  ],
+  "notes": "Impact RIGHT only (2-3 book drops). Should be logged, no alert."
+}

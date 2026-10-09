@@ -1,0 +1,17 @@
+{
+  "clip": "glass_impact_01",
+  "wav": "glass_impact_01.wav",
+  "expected_pattern": "GLASS_IMPACT",
+  "expected_risk": "AMBER",
+  "events": [
+    {
+      "category": "GLASS",
+      "zone": "LEFT"
+    },
+    {
+      "category": "IMPACT",
+      "zone": "RIGHT"
+    }
+  ],
+  "notes": "Glass clip LEFT -> impact RIGHT, no alarm."
+}

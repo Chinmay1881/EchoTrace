@@ -1,0 +1,291 @@
+{
+  "generated_at": "2026-10-09T14:40:52",
+  "clips": 10,
+  "sequence_accuracy": 0.7,
+  "false_alerts": {
+    "echotrace": 0,
+    "baseline": 19,
+    "reduction_pct": 100.0
+  },
+  "lcr_accuracy": 0.755,
+  "latency_ms": {
+    "mean": null,
+    "p95": null
+  },
+  "per_clip": [
+    {
+      "clip": "background_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true
+    },
+    {
+      "clip": "breakin_01",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true
+    },
+    {
+      "clip": "breakin_02",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false
+    },
+    {
+      "clip": "breakin_03",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false
+    },
+    {
+      "clip": "chatter_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true
+    },
+    {
+      "clip": "demo_backup",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false
+    },
+    {
+      "clip": "glass_impact_01",
+      "expected": "GLASS_IMPACT/AMBER",
+      "got": "GLASS_IMPACT/AMBER",
+      "ok": true
+    },
+    {
+      "clip": "lone_alarm_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true
+    },
+    {
+      "clip": "lone_glass_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true
+    },
+    {
+      "clip": "lone_thud_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true
+    }
+  ],
+  "false_alerts_detail": {
+    "echotrace": 0,
+    "baseline": 19,
+    "reduction_pct": 100.0,
+    "clips": 5
+  },
+  "totals": {
+    "echotrace_alerts": 3,
+    "baseline_alerts": 49,
+    "events_detected": 49
+  },
+  "lcr": {
+    "accuracy": 0.755,
+    "events": 49,
+    "correct": 37,
+    "unknown": 10
+  },
+  "detection": {
+    "GLASS": {
+      "labelled": 6,
+      "detected": 5
+    },
+    "IMPACT": {
+      "labelled": 6,
+      "detected": 5
+    },
+    "ALARM": {
+      "labelled": 5,
+      "detected": 4
+    }
+  },
+  "latency_detail": {
+    "mean": null,
+    "p95": null,
+    "n": 0,
+    "sources": [],
+    "note": "no live-run logs with events (recordings/run_*_events.jsonl); latency not measured"
+  },
+  "per_clip_detail": [
+    {
+      "clip": "background_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 0,
+      "alerts": []
+    },
+    {
+      "clip": "breakin_01",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true,
+      "events": [
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@UNKNOWN",
+        "IMPACT@RIGHT",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE"
+      ],
+      "echotrace_alerts": 2,
+      "baseline_alerts": 7,
+      "alerts": [
+        {
+          "risk": "AMBER",
+          "pattern": "GLASS_IMPACT",
+          "event_id": "e5"
+        },
+        {
+          "risk": "RED",
+          "pattern": "BREAKIN_ALARM",
+          "event_id": "e6"
+        }
+      ]
+    },
+    {
+      "clip": "breakin_02",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false,
+      "events": [
+        "IMPACT@CENTRE",
+        "IMPACT@UNKNOWN",
+        "IMPACT@UNKNOWN",
+        "IMPACT@UNKNOWN",
+        "IMPACT@CENTRE",
+        "IMPACT@UNKNOWN"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 6,
+      "alerts": []
+    },
+    {
+      "clip": "breakin_03",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false,
+      "events": [
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "ALARM@CENTRE",
+        "IMPACT@UNKNOWN",
+        "GLASS@LEFT"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 5,
+      "alerts": []
+    },
+    {
+      "clip": "chatter_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 0,
+      "alerts": []
+    },
+    {
+      "clip": "demo_backup",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false,
+      "events": [
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 4,
+      "alerts": []
+    },
+    {
+      "clip": "glass_impact_01",
+      "expected": "GLASS_IMPACT/AMBER",
+      "got": "GLASS_IMPACT/AMBER",
+      "ok": true,
+      "events": [
+        "GLASS@LEFT",
+        "IMPACT@UNKNOWN",
+        "GLASS@UNKNOWN",
+        "GLASS@UNKNOWN",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "IMPACT@RIGHT"
+      ],
+      "echotrace_alerts": 1,
+      "baseline_alerts": 8,
+      "alerts": [
+        {
+          "risk": "AMBER",
+          "pattern": "GLASS_IMPACT",
+          "event_id": "e2"
+        }
+      ]
+    },
+    {
+      "clip": "lone_alarm_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE",
+        "ALARM@CENTRE"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 11,
+      "alerts": []
+    },
+    {
+      "clip": "lone_glass_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT",
+        "GLASS@LEFT"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 7,
+      "alerts": []
+    },
+    {
+      "clip": "lone_thud_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [
+        "IMPACT@UNKNOWN"
+      ],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 1,
+      "alerts": []
+    }
+  ]
+}

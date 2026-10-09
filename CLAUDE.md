@@ -92,7 +92,18 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       a speaker beep (ALARM 0.41-0.56, latency ~31 ms). Added a category-score strip (score, 4 s peak, threshold) to
       LiveMeters so sub-threshold sounds are visible. frontend/src/labels.ts CATEGORY_THRESHOLD mirrors config.py -
       keep them in sync. C: drive was FULL (0 GB free; ~7 GB in pip/npm caches the user can purge).
-- [ ] Phase 5 — Proof + fallback
+- [x] Phase 5 — Proof + fallback (user took over eval from Person C). recordings/eval/*.wav (10 x 25 s, committed)
+      + labels/*.json (ground truth as PERFORMED, never edited to match the model). backend/echotrace/eval/metrics.py
+      (pure maths, tested) + scripts/eval.py -> docs/metrics.json (agreed shape + extras) and docs/metrics.md.
+      Result 14:37: 7/10 clips (70%), false alerts EchoTrace 0 vs baseline 19 on 5 non-incident clips (all clips
+      3 vs 49), L/C/R 76% (37/49, 10 UNKNOWN). Failures = detection misses, NOT correlation: breakin_02 (glass +
+      alarm not heard), breakin_03 (book drop not detected before the alarm), demo_backup (impact max 0.12 < 0.20).
+      NO thresholds were tuned on the eval set (user's honesty rule: ask first, show before/after).
+      Latency null: no recordings/run_*_events.jsonl yet (run run_pipeline.py --source live, then re-run eval).
+      RECORDED mode: loops in real time with RECORDED_LOOP_GAP_S silence; bare names resolve in recordings/eval/.
+      demo_backup.wav does NOT go RED (impact missed); breakin_01.wav does (verified through serve.py).
+      Dashboard MetricsPanel renders null latency as "0 ms" (Math.round(null)) - frontend fix pending user OK.
+      docs/backend_readme_section.md for Person B's README.
 - [ ] Phase 6 — Open-source polish
 
 ## What EchoTrace is

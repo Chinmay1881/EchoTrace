@@ -108,6 +108,11 @@ PATTERNS: list[dict] = [
 RISK_DECAY_S = 20.0            # quiet time after a sequence's last event before its risk stops counting
 CONCERNING = ["IMPACT", "DISTRESS", "ALARM", "GLASS"]   # the baseline alerts on any single one of these
 
+# ---------------------------------------------------------------- RECORDED (backup demo) mode
+RECORDED_DEFAULT_CLIP = "demo_backup.wav"   # looked up in recordings/eval/ first
+RECORDED_LOOP = True
+RECORDED_LOOP_GAP_S = 10.0     # silence between loops so the dashboard visibly resets between runs
+
 # ---------------------------------------------------------------- pipeline
 STATUS_EVERY_S = 1.0
 MAX_BACKLOG_S = 1.0            # if analysis falls this far behind, skip stale windows (reported as dropped)

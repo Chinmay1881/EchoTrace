@@ -102,7 +102,8 @@ class LiveMicSource:
 class WavReplaySource:
     """Replays a WAV through the same pipeline. realtime=True paces blocks like a microphone."""
 
-    def __init__(self, path: str | Path, realtime: bool = True, block: int = config.BLOCK_SIZE, loop: bool = False):
+    def __init__(self, path: str | Path, realtime: bool = True, block: int = config.BLOCK_SIZE, loop: bool = False,
+                 gap_s: float = 0.0):
         import soundfile as sf
         from scipy.signal import resample_poly
 
@@ -119,6 +120,9 @@ class WavReplaySource:
         self.info = SourceInfo("RECORDED", f"file: {self.path.name}", "file", self.rate, min(file_channels, 2),
                                {"file": str(self.path), "seconds": round(len(self.data) / self.rate, 2)})
         self.pos = 0
+        self.gap = int(gap_s * self.rate)      # silence inserted between loops (lets the risk decay)
+        self._gap_left = 0
+        self.loops_done = 0
         self.dropped_blocks = 0
         self.q: queue.Queue = queue.Queue(maxsize=400)
         self._thread: threading.Thread | None = None
@@ -130,10 +134,18 @@ class WavReplaySource:
         return self._done and self.q.empty()
 
     def _next_block(self) -> np.ndarray | None:
+        if self._gap_left > 0:
+            n = min(self.block, self._gap_left)
+            self._gap_left -= n
+            return np.zeros((n, 2), dtype=np.float32)
         if self.pos >= len(self.data):
             if not self.loop:
                 return None
             self.pos = 0
+            self.loops_done += 1
+            if self.gap > 0:
+                self._gap_left = self.gap
+                return self._next_block()
         b = self.data[self.pos:self.pos + self.block]
         self.pos += self.block
         return b

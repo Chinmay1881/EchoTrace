@@ -1,0 +1,8 @@
+{
+  "clip": "chatter_01",
+  "wav": "chatter_01.wav",
+  "expected_pattern": "NONE",
+  "expected_risk": "GREEN",
+  "events": [],
+  "notes": "Speech only, no target events. Expect 0 events."
+}

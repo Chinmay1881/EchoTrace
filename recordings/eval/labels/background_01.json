@@ -1,0 +1,8 @@
+{
+  "clip": "background_01",
+  "wav": "background_01.wav",
+  "expected_pattern": "NONE",
+  "expected_risk": "GREEN",
+  "events": [],
+  "notes": "Quiet room / silence. Expect 0 events."
+}

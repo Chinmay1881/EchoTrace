@@ -183,6 +183,20 @@ def test_offline_run_wav_for_eval(tmp_path):
     assert run_wav(path, FakeTagger(), calibration=Calibration(-1, 0.0)) == msgs
 
 
+def test_wav_replay_loops_with_silent_gap(tmp_path):
+    path = tmp_path / "one.wav"
+    sf.write(path, np.full((SR, 2), 0.5), SR, subtype="PCM_24")             # 1 s of non-silence
+    src = WavReplaySource(path, realtime=False, loop=True, gap_s=0.5).start()
+    got = []
+    while sum(len(b) for b in got) < int(2.6 * SR):
+        got.append(src.get()[0])
+    x = np.concatenate(got)
+    assert np.all(np.abs(x[:SR]) > 0.4)                                       # loop 1
+    assert np.all(x[SR:SR + SR // 2] == 0)                                    # 0.5 s gap
+    assert np.all(np.abs(x[SR + SR // 2:2 * SR + SR // 2]) > 0.4)              # loop 2
+    assert src.loops_done >= 1 and not src.finished
+
+
 @needs_labels
 def test_mono_wav_turns_localization_off(tmp_path):
     path = tmp_path / "mono.wav"

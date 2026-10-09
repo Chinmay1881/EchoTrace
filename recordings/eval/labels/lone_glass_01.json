@@ -1,0 +1,13 @@
+{
+  "clip": "lone_glass_01",
+  "wav": "lone_glass_01.wav",
+  "expected_pattern": "NONE",
+  "expected_risk": "GREEN",
+  "events": [
+    {
+      "category": "GLASS",
+      "zone": "LEFT"
+    }
+  ],
+  "notes": "Glass clip LEFT only. Isolated event: should be logged, no alert."
+}

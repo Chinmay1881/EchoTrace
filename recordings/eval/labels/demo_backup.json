@@ -1,0 +1,21 @@
+{
+  "clip": "demo_backup",
+  "wav": "demo_backup.wav",
+  "expected_pattern": "BREAKIN_ALARM",
+  "expected_risk": "RED",
+  "events": [
+    {
+      "category": "GLASS",
+      "zone": "LEFT"
+    },
+    {
+      "category": "IMPACT",
+      "zone": "RIGHT"
+    },
+    {
+      "category": "ALARM",
+      "zone": "CENTRE"
+    }
+  ],
+  "notes": "Backup demo clip: glass LEFT -> impact RIGHT -> alarm CENTRE. Also used for the RECORDED fallback mode."
+}

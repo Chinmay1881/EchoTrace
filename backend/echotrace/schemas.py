@@ -90,12 +90,12 @@ class StatusMsg(BaseModel):
 class FalseAlerts(BaseModel):
     echotrace: int
     baseline: int
-    reduction_pct: float
+    reduction_pct: float | None        # null when the baseline raised no alerts (undefined, not 100%)
 
 
 class LatencyStats(BaseModel):
-    mean: float
-    p95: float
+    mean: float | None                 # null = not measured (only live runs count; never estimated)
+    p95: float | None
 
 
 class ClipResult(BaseModel):
@@ -108,9 +108,9 @@ class ClipResult(BaseModel):
 class Metrics(BaseModel):
     generated_at: str
     clips: int
-    sequence_accuracy: float
+    sequence_accuracy: float | None
     false_alerts: FalseAlerts
-    lcr_accuracy: float
+    lcr_accuracy: float | None
     latency_ms: LatencyStats
     per_clip: list[ClipResult]
 

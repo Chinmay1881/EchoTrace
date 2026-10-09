@@ -1,0 +1,21 @@
+{
+  "clip": "breakin_01",
+  "wav": "breakin_01.wav",
+  "expected_pattern": "BREAKIN_ALARM",
+  "expected_risk": "RED",
+  "events": [
+    {
+      "category": "GLASS",
+      "zone": "LEFT"
+    },
+    {
+      "category": "IMPACT",
+      "zone": "RIGHT"
+    },
+    {
+      "category": "ALARM",
+      "zone": "CENTRE"
+    }
+  ],
+  "notes": "Glass clip LEFT -> book drop RIGHT -> alarm clip CENTRE."
+}

@@ -151,6 +151,18 @@ def test_metrics_served_as_is(client, tmp_path, monkeypatch):
     Metrics.model_validate(got)                                   # and it matches the agreed shape
 
 
+def test_bare_filename_resolves_in_recordings_eval(tmp_path, monkeypatch):
+    from echotrace.api import server
+    eval_dir = tmp_path / "eval"
+    eval_dir.mkdir()
+    make_wav(eval_dir / "demo_backup.wav", n_events=1)
+    monkeypatch.setattr(server, "EVAL_DIR", eval_dir)
+    assert server.resolve_wav("demo_backup.wav") == (eval_dir / "demo_backup.wav").resolve()
+    assert server.resolve_wav(None) == eval_dir / "demo_backup.wav"          # default clip
+    with pytest.raises(server.ModeError):
+        server.resolve_wav("nope.wav")
+
+
 def test_metrics_and_root(client):
     assert isinstance(client.get("/api/metrics").json(), dict)
     r = client.get("/")
