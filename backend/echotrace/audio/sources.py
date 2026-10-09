@@ -193,16 +193,41 @@ class SimHop:
     angle_deg: float | None          # calibrated convention: + = RIGHT
 
 
-# (start s, duration s, category, label, peak confidence, zone) within one loop of the scenario
-SIM_SCRIPT: list[tuple[float, float, str, str, float, str]] = [
-    (2.0, 0.5, "DOOR", "Door", 0.55, "CENTRE"),                         # distractor: isolated door sound
-    (12.0, 0.4, "IMPACT", "Slam", 0.48, "LEFT"),                        # distractor: lone slam (baseline alerts)
-    (23.0, 2.0, "FOOTSTEPS", "Walk, footsteps", 0.62, "LEFT"),          # demo sequence ...
-    (25.5, 1.5, "FOOTSTEPS", "Walk, footsteps", 0.58, "CENTRE"),
-    (28.2, 0.4, "IMPACT", "Thump, thud", 0.71, "RIGHT"),
-    (29.6, 1.0, "DISTRESS", "Screaming", 0.54, "RIGHT"),
-]
-SIM_LOOP_S = 60.0     # long quiet tail so the risk visibly decays back to GREEN (RISK_DECAY_S) before repeating
+# (start s, duration s, category, label, peak confidence, zone) within one scenario segment.
+# Each segment is SIM_SEGMENT_S long with a quiet tail, so the risk visibly decays back to GREEN
+# (RISK_DECAY_S) before the next one starts.
+SIM_SCENARIOS: dict[str, list[tuple[float, float, str, str, float, str]]] = {
+    "demo": [   # movement -> impact -> distress (RED), plus two isolated distractors (GREEN; baseline alerts)
+        (2.0, 0.5, "DOOR", "Door", 0.55, "CENTRE"),
+        (12.0, 0.4, "IMPACT", "Slam", 0.48, "LEFT"),
+        (23.0, 2.0, "FOOTSTEPS", "Walk, footsteps", 0.62, "LEFT"),
+        (25.5, 1.5, "FOOTSTEPS", "Walk, footsteps", 0.58, "CENTRE"),
+        (28.2, 0.4, "IMPACT", "Thump, thud", 0.71, "RIGHT"),
+        (29.6, 1.0, "DISTRESS", "Screaming", 0.54, "RIGHT"),
+    ],
+    "breakin": [   # glass -> impact -> alarm (AMBER at the impact, RED at the alarm), like the 12:33 live run
+        (3.0, 0.4, "GLASS", "Shatter", 0.66, "LEFT"),
+        (4.5, 0.4, "GLASS", "Glass", 0.58, "LEFT"),
+        (9.0, 0.4, "IMPACT", "Chop", 0.62, "RIGHT"),
+        (11.5, 0.4, "IMPACT", "Thump, thud", 0.55, "RIGHT"),
+        (16.0, 6.0, "ALARM", "Smoke detector, smoke alarm", 0.64, "CENTRE"),
+    ],
+}
+SIM_SEGMENT_S = 60.0
+SIM_ORDER = {"demo": ["demo"], "breakin": ["breakin"], "all": ["demo", "breakin"]}
+# kept for compatibility: the default single-segment script / loop
+SIM_SCRIPT = SIM_SCENARIOS["demo"]
+SIM_LOOP_S = SIM_SEGMENT_S
+
+
+def scenario_script(name: str) -> tuple[list[tuple[float, float, str, str, float, str]], float]:
+    """(script with absolute start times, loop length) for 'demo', 'breakin' or 'all'."""
+    if name not in SIM_ORDER:
+        raise ValueError(f"unknown simulation scenario {name!r}; choose from {list(SIM_ORDER)}")
+    script = []
+    for i, seg in enumerate(SIM_ORDER[name]):
+        script += [(start + i * SIM_SEGMENT_S, *rest) for start, *rest in SIM_SCENARIOS[seg]]
+    return script, SIM_SEGMENT_S * len(SIM_ORDER[name])
 ZONE_ANGLE = {"LEFT": -45.0, "CENTRE": 0.0, "RIGHT": 45.0}
 BACKGROUND_TOP = [("Inside, small room", 0.12), ("Speech", 0.08), ("Silence", 0.05), ("Music", 0.03), ("Hum", 0.02)]
 
@@ -211,12 +236,13 @@ class SimSource:
     """Scripted scenario (demo sequence + distractors). Clearly SIMULATED; never shown as live."""
 
     def __init__(self, realtime: bool = True, loops: int | None = None, hop_s: float = config.HOP_S,
-                 script=SIM_SCRIPT, loop_s: float = SIM_LOOP_S, seed: int = 7):
+                 scenario: str = "all", seed: int = 7):
         self.realtime, self.loops, self.hop_s = realtime, loops, hop_s
-        self.script, self.loop_s = script, loop_s
+        self.scenario = scenario
+        self.script, self.loop_s = scenario_script(scenario)
         self.rng = np.random.default_rng(seed)
-        self.info = SourceInfo("SIMULATED", "simulated scenario", "none", config.CAPTURE_RATE, 2,
-                               {"script_events": len(script), "loop_s": loop_s})
+        self.info = SourceInfo("SIMULATED", f"simulated scenario: {scenario}", "none", config.CAPTURE_RATE, 2,
+                               {"scenario": scenario, "script_events": len(self.script), "loop_s": self.loop_s})
         self.dropped_blocks = 0
         self.n = 0
         self.t0 = 0.0

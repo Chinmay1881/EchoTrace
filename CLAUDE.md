@@ -60,6 +60,19 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       * status every 1 s of stream time + after every event; latency_ms = 0.0 until the first event is sent
       * SIMULATED: no model runs; status.model_device reports "cpu", device "simulated scenario", host_api "none"
       * angle_deg: + = RIGHT, - = LEFT (after calibration); null when the zone is UNKNOWN for lack of audio
+      Post-live-run update (12:33 run, now tests/fixtures/live_run_20261009_1233.json + test_regression_live_run.py):
+      * patterns live in config.PATTERNS (editable); added BREAKIN_ALARM (GLASS->IMPACT->ALARM, 15 s, RED) and
+        GLASS_IMPACT (15 s, AMBER); matcher = state machine finding the ordered subsequence in a growing sequence
+      * a sequence alerts ONCE per escalation (GREEN->AMBER->RED); later events update the same id, never
+        downgrade, and the why-list says "N later event(s) added ... without a new alert"; Analyzer.alerts = the
+        alert log (use it for metrics, not sequence updates)
+      * why-lines / summaries / trajectory group consecutive same-category events (majority zone per group;
+        footsteps keep per-event movement)
+      * ALARM += "Beep, bleep"; LOC_MIN_VOTE 0.6; calibrate_direction.py refuses sd > 2.5, non-opposite sides,
+        |offset| > 2, CENTRE mismatch. Current backend/calibration.json (12:30) kept: offset -0.23 OK, but its
+        sd 7.7/6.6 would fail the new checks -> recalibrate.
+      * SimSource scenarios: demo | breakin | all (default all = 120 s loop); run_pipeline.py writes
+        recordings/run_*_events.jsonl (metadata only) for future fixtures
 - [ ] Phase 3 — Serving
 - [ ] Phase 4 — Dashboard
 - [ ] Phase 5 — Proof + fallback

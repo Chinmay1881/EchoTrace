@@ -30,7 +30,7 @@ def final_sequences(msgs):
 # ------------------------------------------------------------------ SIMULATED
 @pytest.fixture(scope="module")
 def sim_msgs():
-    return Pipeline(SimSource(realtime=False, loops=1), start_wall=START).run_to_end()
+    return Pipeline(SimSource(realtime=False, loops=1, scenario="demo"), start_wall=START).run_to_end()
 
 
 def test_sim_messages_follow_contract_and_are_labelled(sim_msgs):
@@ -55,7 +55,7 @@ def test_sim_demo_is_one_red_sequence_and_distractors_green(sim_msgs):
 
 
 def test_sim_status_reports_red_then_decays():
-    src = SimSource(realtime=False, loops=2)
+    src = SimSource(realtime=False, loops=2, scenario="demo")
     msgs = Pipeline(src, start_wall=START).run_to_end()
     risks = [(s["t"], s["risk"]) for s in by_type(msgs, "status")]
     red_end = max(t for t, r in risks if r == "RED" and t < src.loop_s)
@@ -66,10 +66,38 @@ def test_sim_status_reports_red_then_decays():
 
 
 def test_sim_baseline_alerts_more_than_echotrace():
-    p = Pipeline(SimSource(realtime=False, loops=1), start_wall=START)
+    p = Pipeline(SimSource(realtime=False, loops=1, scenario="demo"), start_wall=START)
     msgs = p.run_to_end()
     echo_alerts = [s for s in final_sequences(msgs).values() if s["risk"] != "GREEN"]
     assert len(p.analyzer.baseline.alerts) > len(echo_alerts) == 1
+
+
+def test_sim_breakin_scenario_amber_then_red():
+    p = Pipeline(SimSource(realtime=False, loops=1, scenario="breakin"), start_wall=START)
+    msgs = p.run_to_end()
+    seqs = final_sequences(msgs)
+    assert len(seqs) == 1
+    s = next(iter(seqs.values()))
+    assert (s["risk"], s["pattern"]) == ("RED", "BREAKIN_ALARM")
+    assert s["trajectory"] == ["LEFT", "RIGHT", "CENTRE"]
+    assert [(a["risk"], a["pattern"]) for a in p.analyzer.alerts] == [("AMBER", "GLASS_IMPACT"), ("RED", "BREAKIN_ALARM")]
+    first_alarm = next(e for e in by_type(msgs, "event") if e["category"] == "ALARM")
+    assert p.analyzer.alerts[-1]["event_id"] == first_alarm["id"]
+    assert any("alert raised at" in w for w in s["explanation"])
+
+
+def test_sim_all_plays_both_scenarios_with_decay_between():
+    src = SimSource(realtime=False, loops=1)                  # default scenario "all"
+    msgs = Pipeline(src, start_wall=START).run_to_end()
+    reds = {s["pattern"] for s in final_sequences(msgs).values() if s["risk"] == "RED"}
+    assert reds == {"MOVEMENT_IMPACT_DISTRESS", "BREAKIN_ALARM"}
+    risks = [(s["t"], s["risk"]) for s in by_type(msgs, "status")]
+    assert any(r == "GREEN" for t, r in risks if 55 < t < 62)  # demo RED has decayed before break-in starts
+
+
+def test_unknown_scenario_rejected():
+    with pytest.raises(ValueError):
+        SimSource(scenario="nope")
 
 
 # ------------------------------------------------------------------ RECORDED (real audio path, fake tagger)

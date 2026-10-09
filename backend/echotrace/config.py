@@ -74,7 +74,8 @@ LOC_FRAME_HOP = 512
 LOC_MAX_FRAMES = 12            # highest-energy frames near the onset that get a vote
 LOC_PRE_S = 0.5                # audio before t_start included in the search
 LOC_MAX_SPAN_S = 2.5
-LOC_MIN_VOTE = 0.5             # winning zone needs at least this share of the (peak-weighted) votes
+LOC_MIN_VOTE = 0.6             # winning zone needs at least this share of the (peak-weighted) votes, else UNKNOWN
+                               # (live run 12:33: an IMPACT read LEFT and 2 ALARMs read RIGHT among correct ones)
 LOC_MIN_PEAK = 0.10            # mean GCC-PHAT peak of the winning frames; below -> UNKNOWN
 LOC_CHECK_EVERY_S = 5.0        # how often the channels are re-checked for being identical (-> localization OFF)
 AUDIO_RING_S = 15.0            # raw stereo kept in memory for localization (never written to disk)
@@ -85,7 +86,25 @@ DEFAULT_CAL_OFFSET = 0.0
 
 # ---------------------------------------------------------------- correlation / risk
 LINK_WINDOW_S = 8.0            # events closer than this (end -> start) belong to the same sequence
-PATTERN_MAX_GAP_S = 8.0        # max gap between consecutive steps of a pattern
+PATTERN_MAX_GAP_S = 8.0        # default max gap between consecutive matched events of a pattern
+
+# Ordered pattern templates, highest priority first. steps = [(category, min events)]; repeats of a step's
+# category are absorbed; unrelated events may be interleaved; consecutive matched events must be within
+# max_gap_s (falls back to PATTERN_MAX_GAP_S). A sequence that matches nothing stays GREEN (logged, no alert).
+PATTERNS: list[dict] = [
+    {"name": "MOVEMENT_IMPACT_DISTRESS", "steps": [("FOOTSTEPS", 1), ("IMPACT", 1), ("DISTRESS", 1)],
+     "risk": "RED", "description": "movement -> impact -> distress"},
+    {"name": "BREAKIN_ALARM", "steps": [("GLASS", 1), ("IMPACT", 1), ("ALARM", 1)], "max_gap_s": 15.0,
+     "risk": "RED", "description": "breaking glass -> impact -> alarm (possible break-in/incident with alarm)"},
+    {"name": "IMPACT_DISTRESS", "steps": [("IMPACT", 1), ("DISTRESS", 1)],
+     "risk": "AMBER", "description": "impact -> distress"},
+    {"name": "ALARM_EVACUATION", "steps": [("ALARM", 1), ("FOOTSTEPS", 2)],
+     "risk": "AMBER", "description": "alarm -> movement (possible evacuation)"},
+    {"name": "GLASS_INTRUSION", "steps": [("GLASS", 1), ("FOOTSTEPS", 1)],
+     "risk": "AMBER", "description": "breaking glass -> movement"},
+    {"name": "GLASS_IMPACT", "steps": [("GLASS", 1), ("IMPACT", 1)], "max_gap_s": 15.0,
+     "risk": "AMBER", "description": "breaking glass -> impact"},
+]
 RISK_DECAY_S = 20.0            # quiet time after a sequence's last event before its risk stops counting
 CONCERNING = ["IMPACT", "DISTRESS", "ALARM", "GLASS"]   # the baseline alerts on any single one of these
 
@@ -101,7 +120,9 @@ CATEGORIES: dict[str, list[str]] = {
     # label), Tap (fires on footsteps), Wood / Wood block (no evidence).
     "IMPACT": ["Thump, thud", "Slam", "Bang", "Smash, crash", "Knock", "Hammer", "Chop"],
     "DISTRESS": ["Screaming", "Yell", "Crying, sobbing", "Shout", "Groan", "Whimper"],
-    "ALARM": ["Smoke detector, smoke alarm", "Fire alarm", "Alarm", "Siren", "Buzzer"],
+    # Beep, bleep: 0.71 on the real smoke-detector clip (run 115300), 0.00 in every BACKGROUND/CHATTER and
+    # non-alarm step of all three guided runs.
+    "ALARM": ["Smoke detector, smoke alarm", "Fire alarm", "Alarm", "Siren", "Buzzer", "Beep, bleep"],
     "GLASS": ["Glass", "Shatter", "Breaking"],
     "DOOR": ["Door", "Sliding door", "Cupboard open or close"],
 }

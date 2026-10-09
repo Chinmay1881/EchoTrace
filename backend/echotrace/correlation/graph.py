@@ -23,12 +23,49 @@ class Cluster:
         return max(e.t_end for e in self.events)
 
     def trajectory(self) -> list[str]:
-        """Zones in time order, consecutive repeats and UNKNOWN collapsed."""
-        out: list[str] = []
-        for e in sorted(self.events, key=lambda e: e.t_start):
-            if e.zone != "UNKNOWN" and (not out or out[-1] != e.zone):
-                out.append(e.zone)
-        return out
+        return trajectory(self.events)
+
+
+def groups(events: list[Event]) -> list[list[Event]]:
+    """Time-ordered runs of consecutive same-category events (e.g. 5 impacts in a row = one group)."""
+    out: list[list[Event]] = []
+    for e in sorted(events, key=lambda e: (e.t_start, e.t_end)):
+        if out and out[-1][0].category == e.category:
+            out[-1].append(e)
+        else:
+            out.append([e])
+    return out
+
+
+def group_zone(group: list[Event]) -> str:
+    """Confidence-weighted majority zone of a group (UNKNOWN ignored), so one stray reading can't flip it."""
+    votes: dict[str, float] = {}
+    for e in group:
+        if e.zone != "UNKNOWN":
+            votes[e.zone] = votes.get(e.zone, 0.0) + e.confidence
+    return max(votes, key=votes.get) if votes else "UNKNOWN"
+
+
+def group_zones(group: list[Event]) -> list[str]:
+    """Footsteps keep their movement (zone per event); any other sound counts as one place."""
+    if group[0].category != "FOOTSTEPS":
+        z = group_zone(group)
+        return [] if z == "UNKNOWN" else [z]
+    out: list[str] = []
+    for e in group:
+        if e.zone != "UNKNOWN" and (not out or out[-1] != e.zone):
+            out.append(e.zone)
+    return out
+
+
+def trajectory(events: list[Event]) -> list[str]:
+    """The possible acoustic trajectory: zones in time order, repeats and UNKNOWN collapsed."""
+    out: list[str] = []
+    for g in groups(events):
+        for z in group_zones(g):
+            if not out or out[-1] != z:
+                out.append(z)
+    return out
 
 
 class EventGraph:

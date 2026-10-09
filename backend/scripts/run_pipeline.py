@@ -8,7 +8,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import time
+from datetime import datetime
 
 import _bootstrap  # noqa: F401
 from echotrace import config
@@ -28,6 +30,8 @@ def main() -> None:
     ap.add_argument("--seconds", type=float, help="stop after this many seconds of stream time")
     ap.add_argument("--cpu", action="store_true")
     ap.add_argument("--frames", action="store_true", help="also print every frame")
+    ap.add_argument("--scenario", default="all", help="sim: demo | breakin | all")
+    ap.add_argument("--no-log", action="store_true", help="don't write recordings/run_*_events.jsonl")
     args = ap.parse_args()
 
     import os
@@ -41,15 +45,25 @@ def main() -> None:
             ap.error("--source wav needs --file")
         src = WavReplaySource(args.file, realtime=not args.fast)
     else:
-        src = SimSource(realtime=not args.fast, loops=1 if args.fast else None)
+        src = SimSource(realtime=not args.fast, loops=1 if args.fast else None, scenario=args.scenario)
     if args.source != "sim":
         from echotrace.tagging.panns_tagger import PannsTagger
         print("Loading CNN14 ...", flush=True)
         tagger = PannsTagger(force_cpu=args.cpu)
         tagger.warmup()
 
+    log = None
+    if not args.no_log:                                # event metadata only (no audio, no frames)
+        config.RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
+        log_path = config.RECORDINGS_DIR / f"run_{datetime.now():%Y%m%d_%H%M%S}_events.jsonl"
+        log = open(log_path, "w", encoding="utf-8")
+    alerted = [0]
+
     def emit(msg: dict, capture: float | None) -> None:
         validate(msg)                                  # every message must match the WS contract
+        if log is not None and msg["type"] != "frame":
+            log.write(json.dumps(msg) + "\n")
+            log.flush()
         if capture is not None and msg["type"] == "event":
             p.analyzer.record_latency((time.monotonic() - capture) * 1000)
         d = msg["data"]
@@ -66,7 +80,11 @@ def main() -> None:
             c = COLOR[d["risk"]]
             print(f"\033[{c}m  SEQUENCE {d['id']} {d['risk']:<5} {d['pattern']:<26} events {d['event_ids']} "
                   f"trajectory {' -> '.join(d['trajectory']) or '-'}\033[0m")
-            if d["risk"] != "GREEN" or len(d["event_ids"]) == 1:
+            escalated = len(p.analyzer.alerts) > alerted[0]
+            alerted[0] = len(p.analyzer.alerts)
+            if escalated:
+                print(f"\033[1;{c}m  >>> ALERT {d['risk']}: {d['pattern']} (sequence {d['id']})\033[0m")
+            if escalated or len(d["event_ids"]) == 1:
                 print(f"    {d['summary']}")
                 for w in d["explanation"]:
                     print(f"      why: {w}")
@@ -87,9 +105,12 @@ def main() -> None:
         pass
     finally:
         src.stop()
+        if log is not None:
+            log.close()
+            print(f"event log: {log_path}")
     lat = p.analyzer.latencies
     base = len(p.analyzer.baseline.alerts)
-    alerts = sum(1 for s in p.analyzer.sequences.values() if s["data"]["risk"] != "GREEN")
+    alerts = len(p.analyzer.alerts)
     print(f"\n{len(p.analyzer.events)} events, {len(p.analyzer.sequences)} sequences, EchoTrace alerts {alerts} vs "
           f"baseline alerts {base}" + (f"; latency mean {sum(lat) / len(lat):.0f} ms" if lat else ""))
 

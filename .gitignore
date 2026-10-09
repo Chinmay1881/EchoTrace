@@ -17,6 +17,7 @@ frontend/dist/
 *.wav
 *.flac
 recordings/topk_*.csv
+recordings/run_*_events.jsonl
 
 # Local state
 backend/calibration.json

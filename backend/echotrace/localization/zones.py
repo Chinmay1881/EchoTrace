@@ -39,6 +39,32 @@ def load_calibration(path: Path = config.CALIBRATION_FILE) -> Calibration:
     return Calibration(sign, float(d.get("offset_samples", 0.0)), f"calibration file {path.name}")
 
 
+def calibration_from_measurements(left: float, left_sd: float, right: float, right_sd: float,
+                                  centre: float | None = None, centre_sd: float | None = None,
+                                  max_sd: float = 2.5, max_offset: float = 2.0,
+                                  min_separation: float = 4.0) -> tuple[Calibration, list[str]]:
+    """Calibration from median raw lags per side, plus every reason it should NOT be trusted (empty = ok)."""
+    sign = -1 if left > right else 1                     # corrected positive must mean RIGHT
+    cal = Calibration(sign, round((left + right) / 2, 3), "calibrate_direction.py")
+    problems = []
+    for name, sd in (("LEFT", left_sd), ("RIGHT", right_sd), ("CENTRE", centre_sd)):
+        if sd is not None and sd > max_sd:
+            problems.append(f"{name} lags spread too much (sd {sd:.1f} > {max_sd}): mixed directions, reflections "
+                            "or table vibration - use sharp sounds in the air from one spot")
+    if left * right >= 0:
+        problems.append(f"LEFT ({left:+.2f}) and RIGHT ({right:+.2f}) are not on opposite sides of zero")
+    if abs(left - right) < min_separation:
+        problems.append(f"LEFT/RIGHT separation {abs(left - right):.1f} < {min_separation:.0f} samples: "
+                        "too close to the centre, too quiet, or channels not distinct")
+    if abs(cal.offset_samples) > max_offset:
+        problems.append(f"offset {cal.offset_samples:+.2f} exceeds +/-{max_offset:.0f} samples (asymmetric result)")
+    if centre is not None:
+        zone = angle_to_zone(lag_to_angle(cal.correct(centre)))
+        if zone != "CENTRE":
+            problems.append(f"CENTRE check reads {zone} (raw {centre:+.2f})")
+    return cal, problems
+
+
 def angle_to_zone(angle_deg: float, centre_half: float = config.CENTRE_HALF_ANGLE_DEG) -> str:
     if abs(angle_deg) < centre_half:
         return "CENTRE"

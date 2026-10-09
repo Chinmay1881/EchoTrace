@@ -1,0 +1,27 @@
+{
+  "provenance": "Live run 2026-10-09 12:33 (run_pipeline.py --source live --seconds 90, WDM-KS Microphone Array 2, cuda). Transcribed from the terminal output; confidences/angles as printed (rounded). Performed: glass LEFT -> thud RIGHT -> alarm CENTRE, then glass again.",
+  "session_start_wall": "2026-10-09T12:33:24.500",
+  "events": [
+    ["e1", 10.5, 11.5, "GLASS", "Glass", 0.54, "LEFT", -60],
+    ["e2", 13.5, 14.0, "GLASS", "Glass", 0.35, "LEFT", -61],
+    ["e3", 15.5, 16.5, "GLASS", "Glass", 0.68, "LEFT", -60],
+    ["e4", 23.5, 24.0, "IMPACT", "Chop", 0.25, "RIGHT", 43],
+    ["e5", 30.0, 30.5, "IMPACT", "Chop", 0.22, "LEFT", -53],
+    ["e6", 33.0, 34.0, "IMPACT", "Chop", 0.79, "RIGHT", 54],
+    ["e7", 39.0, 39.5, "IMPACT", "Chop", 0.23, "RIGHT", 45],
+    ["e8", 40.0, 40.5, "IMPACT", "Thump, thud", 0.20, "CENTRE", -2],
+    ["e9", 43.0, 45.0, "ALARM", "Alarm", 0.55, "CENTRE", -10],
+    ["e10", 45.0, 47.0, "ALARM", "Alarm", 0.53, "CENTRE", -16],
+    ["e11", 47.0, 48.0, "ALARM", "Alarm", 0.54, "CENTRE", -4],
+    ["e12", 50.5, 52.5, "ALARM", "Smoke detector, smoke alarm", 0.59, "CENTRE", 0],
+    ["e13", 52.5, 54.5, "ALARM", "Alarm", 0.65, "CENTRE", 0],
+    ["e14", 54.5, 56.0, "ALARM", "Alarm", 0.57, "CENTRE", -2],
+    ["e15", 58.5, 60.5, "ALARM", "Alarm", 0.42, "RIGHT", 35],
+    ["e16", 60.5, 62.5, "ALARM", "Alarm", 0.49, "RIGHT", 35],
+    ["e17", 62.5, 63.5, "ALARM", "Smoke detector, smoke alarm", 0.58, "CENTRE", -16],
+    ["e18", 75.5, 76.5, "GLASS", "Shatter", 0.54, "LEFT", -60],
+    ["e19", 78.0, 79.5, "GLASS", "Glass", 0.67, "LEFT", -61],
+    ["e20", 80.0, 82.0, "GLASS", "Shatter", 0.41, "LEFT", -64],
+    ["e21", 87.5, 88.0, "GLASS", "Shatter", 0.52, "LEFT", -62]
+  ]
+}

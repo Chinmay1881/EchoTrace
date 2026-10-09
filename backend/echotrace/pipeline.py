@@ -21,7 +21,7 @@ from echotrace.audio.sources import SimHop, SourceInfo
 from echotrace.audio.window import RollingWindow, Window
 from echotrace.baseline import BaselineAlerter
 from echotrace.correlation.graph import EventGraph
-from echotrace.correlation.patterns import match
+from echotrace.correlation.patterns import PATTERNS, RISK_ORDER, match
 from echotrace.detection.debounce import Debouncer, RawEvent
 from echotrace.events import Event
 from echotrace.localization.zones import Localization, ZoneLocalizer, angle_to_zone
@@ -90,6 +90,9 @@ class Analyzer:
         self.baseline = BaselineAlerter()
         self.events: list[Event] = []
         self.sequences: dict[str, dict] = {}
+        # per sequence: (risk, pattern name, id of the event that raised it, number of events at that moment)
+        self.fired: dict[str, tuple[str, str, str, int]] = {}
+        self.alerts: list[dict] = []     # one entry per risk escalation of a sequence (what an operator sees)
         self.hop_angles: deque = deque(maxlen=200)
         self.latencies: list[float] = []
         self.last_latency = 0.0
@@ -200,13 +203,34 @@ class Analyzer:
         ev = Event(f"e{len(self.events) + 1}", raw.t_start, raw.t_end, raw.category, raw.label,
                    round(float(raw.confidence), 3), loc.zone, loc.angle_deg, self.wall(raw.t_start),
                    raw.capture_time)
+        return self.add_event(ev)
+
+    def add_event(self, ev: Event) -> list[Out]:
+        """Correlate one localized event (also used to replay logged events in regression tests)."""
+        self.t = max(self.t, ev.t_end)
+        if not ev.wall:
+            ev.wall = self.wall(ev.t_start)
         self.events.append(ev)
         self.baseline.observe(ev)
         cluster = self.graph.add(ev)
         m = match(cluster.events)
-        risk = m.pattern.risk if m else "GREEN"
+        new_risk = m.pattern.risk if m else "GREEN"
+        prev = self.fired.get(cluster.id)
+        if m and (prev is None or RISK_ORDER[new_risk] > RISK_ORDER[prev[0]]):
+            # escalation: alert once, at the event that completed the pattern
+            prev = (new_risk, m.pattern.name, m.completed_by.id, len(cluster.events))
+            self.fired[cluster.id] = prev
+            self.alerts.append({"sequence_id": cluster.id, "risk": new_risk, "pattern": m.pattern.name,
+                                "event_id": m.completed_by.id, "t": self.t, "wall": self.wall(self.t)})
+        if prev is not None:                     # a sequence never silently downgrades; repeats don't re-alert
+            risk, pattern, fired_at, n_at = prev
+            if m is None or m.pattern.name != pattern:
+                m = match(cluster.events, [p for p in PATTERNS if p.name == pattern])
+            later = len(cluster.events) - n_at
+        else:
+            risk, fired_at, later = "GREEN", None, 0
+            pattern = "ISOLATED_EVENT" if len(cluster.events) == 1 else "NONE"
         traj = cluster.trajectory()
-        pattern = m.pattern.name if m else ("ISOLATED_EVENT" if len(cluster.events) == 1 else "NONE")
         self.risk.update(cluster.id, risk, cluster.last_t)
         seq = {"type": "sequence", "data": {
             **self._base(self.t),
@@ -214,7 +238,7 @@ class Analyzer:
             "event_ids": [e.id for e in sorted(cluster.events, key=lambda e: e.t_start)],
             "pattern": pattern,
             "risk": risk,
-            "explanation": explain(cluster.events, risk, m, traj),
+            "explanation": explain(cluster.events, risk, m, traj, fired_at, later),
             "summary": summarize(cluster.events, risk, m),
             "trajectory": traj,
         }}
@@ -224,7 +248,7 @@ class Analyzer:
             "id": ev.id, "t_start": ev.t_start, "t_end": ev.t_end, "category": ev.category, "label": ev.label,
             "confidence": ev.confidence, "zone": ev.zone, "angle_deg": ev.angle_deg,
         }}
-        return [(event, raw.capture_time), (seq, raw.capture_time), (self.status(self.t), None)]
+        return [(event, ev.capture_time), (seq, ev.capture_time), (self.status(self.t), None)]
 
 
 class Pipeline:

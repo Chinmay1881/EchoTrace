@@ -103,6 +103,25 @@ def test_calibration_sign_and_offset(tmp_path):
     assert ZoneLocalizer(Calibration(1, 0)).localize(audio).zone == "LEFT"
 
 
+def test_good_calibration_accepted():
+    from echotrace.localization.zones import calibration_from_measurements
+    cal, problems = calibration_from_measurements(7.2, 0.6, -7.8, 0.5, centre=-0.4, centre_sd=0.8)
+    assert problems == [] and cal.sign == -1 and cal.offset_samples == pytest.approx(-0.3)
+
+
+@pytest.mark.parametrize("args,reason", [
+    ((8.134, 7.716, -8.601, 6.58, -0.552, None), "spread too much"),   # the 12:30 calibration.json
+    ((6.0, 0.5, 2.0, 0.5, None, None), "not on opposite sides"),
+    ((1.5, 0.5, -1.0, 0.5, None, None), "separation"),
+    ((8.0, 0.5, -3.0, 0.5, None, None), "offset"),
+    ((7.0, 0.5, -7.0, 0.5, 4.5, 0.5), "CENTRE check reads LEFT"),
+])
+def test_bad_calibration_refused(args, reason):
+    from echotrace.localization.zones import calibration_from_measurements
+    _, problems = calibration_from_measurements(*args)
+    assert any(reason in p for p in problems), problems
+
+
 def test_missing_calibration_file_uses_default(tmp_path):
     cal = load_calibration(tmp_path / "nope.json")
     assert cal.sign == -1 and "default" in cal.source

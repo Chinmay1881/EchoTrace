@@ -47,7 +47,10 @@ def test_demo_explanation_and_summary():
     why = explain(cl.events, "RED", m, cl.trajectory())
     assert any("moving towards RIGHT" in w for w in why)
     assert any("MOVEMENT_IMPACT_DISTRESS" in w and "RED" in w for w in why)
-    assert sum("%" in w for w in why) >= 4            # every event shows its confidence
+    # one line per group of same-category events, each with its confidence
+    assert why[:3] == ["Footsteps x2 (Walk, footsteps, max 62%) moving LEFT -> CENTRE",
+                       "Impact (Thump, thud) 71% on the RIGHT, 1.2 s after the footsteps",
+                       "Distress (Screaming) 54% on the RIGHT, 0.8 s after the impact"]
     s = summarize(cl.events, "RED", m)
     assert s == ("14:02:00 - Footsteps heard moving LEFT -> CENTRE (62%), followed 1.2 s later by an impact on the "
                  "RIGHT (71%) and a possible distress vocalisation on the RIGHT (54%). Pattern: movement -> impact "
@@ -111,6 +114,48 @@ def test_patterns(events, name, risk):
 ])
 def test_non_matches(events):
     assert match([ev(i, c, a, b, "CENTRE") for i, (c, a, b) in enumerate(events)]) is None
+
+
+def seq_of(*spec):
+    return [ev(i + 1, c, a, b, "CENTRE") for i, (c, a, b) in enumerate(spec)]
+
+
+def test_breakin_alarm_found_inside_long_noisy_sequence():
+    evs = seq_of(("ALARM", 0, 1),                       # an alarm BEFORE the glass doesn't count
+                 ("GLASS", 3, 4), ("GLASS", 5, 6), ("DOOR", 6.5, 7), ("IMPACT", 8, 8.5), ("GLASS", 9, 9.5),
+                 ("IMPACT", 12, 12.5), ("FOOTSTEPS", 13, 14), ("ALARM", 26, 28), ("ALARM", 28, 30))
+    m = match(evs)
+    assert m.pattern.name == "BREAKIN_ALARM" and m.pattern.risk == "RED"
+    assert m.completed_by.id == "e9"                    # the first alarm after glass -> impact
+    assert [e.category for e in m.events] == ["GLASS", "GLASS", "IMPACT", "IMPACT", "ALARM"]
+
+
+def test_breakin_alarm_gap_limit_is_15_s():
+    assert match(seq_of(("GLASS", 0, 1), ("IMPACT", 15.9, 16), ("ALARM", 30, 31))).pattern.name == "BREAKIN_ALARM"
+    m = match(seq_of(("GLASS", 0, 1), ("IMPACT", 16.5, 17), ("ALARM", 30, 31)))
+    assert m is None                                    # glass -> impact gap 15.5 s
+
+
+def test_glass_impact_is_amber_until_alarm():
+    m = match(seq_of(("GLASS", 0, 1), ("IMPACT", 3, 3.5)))
+    assert m.pattern.name == "GLASS_IMPACT" and m.pattern.risk == "AMBER"
+
+
+def test_repeats_do_not_confuse_matching():
+    # many repeats of every step, in order, all close: still one clean match ending at the first ALARM
+    evs = seq_of(*[("GLASS", t, t + 0.5) for t in range(0, 6)],
+                 *[("IMPACT", t, t + 0.5) for t in range(6, 12)],
+                 *[("ALARM", t, t + 0.5) for t in range(12, 18)])
+    m = match(evs)
+    assert m.pattern.name == "BREAKIN_ALARM" and m.completed_by.id == "e13"
+
+
+def test_pattern_config_is_validated():
+    from echotrace.correlation.patterns import load_patterns
+    with pytest.raises(ValueError, match="unknown categories"):
+        load_patterns([{"name": "X", "steps": [("GLAS", 1)], "risk": "RED", "description": "x"}])
+    with pytest.raises(ValueError, match="risk"):
+        load_patterns([{"name": "X", "steps": [("GLASS", 1)], "risk": "PURPLE", "description": "x"}])
 
 
 def test_highest_priority_pattern_wins():
