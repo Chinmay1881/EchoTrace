@@ -69,6 +69,7 @@ class Analyzer:
                  window_s: float = config.WINDOW_S, hop_s: float = config.HOP_S, id_prefix: str = ""):
         self.info = info
         self.id_prefix = id_prefix           # e.g. "m2-" so ids stay unique across source switches
+        self.sensitivity = config.SENSITIVITY  # the profile the debouncer was built with (reported in status)
         self._n_events = 0                   # survive reset, so ids are never reused within a session
         self._n_clusters = 0
         self.source = info.source
@@ -131,6 +132,7 @@ class Analyzer:
             "localization": "ON" if self.loc_on else "OFF",
             "model_device": self.model_device,
             "dropped_blocks": int(dropped_blocks + self.dropped_extra),
+            "sensitivity": self.sensitivity,
         }}
 
     # ----------------------------------------------------------------- inputs

@@ -232,7 +232,8 @@ class Engine:
         else:
             data = {**self.meta(), "risk": "GREEN", "latency_ms": 0.0, "device": "starting...",
                     "host_api": "none", "sample_rate": config.CAPTURE_RATE, "channels": 2,
-                    "localization": "OFF", "model_device": "cpu", "dropped_blocks": 0}
+                    "localization": "OFF", "model_device": "cpu", "dropped_blocks": 0,
+                    "sensitivity": config.SENSITIVITY}
         if extras:
             pipe_err = self.pipeline.error if self.pipeline is not None else None
             data = {**data, "mode": self.mode, "error": self.error or pipe_err, "tagger": self.tagger_state,

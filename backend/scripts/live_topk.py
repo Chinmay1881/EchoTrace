@@ -252,7 +252,8 @@ def main() -> None:
     ap.add_argument("--device", help="input device name substring (default: config.DEVICE_NAME_PREFS)")
     ap.add_argument("--window", type=float, default=config.WINDOW_S, help="analysis window, s")
     ap.add_argument("--hop", type=float, default=config.HOP_S, help="hop, s")
-    ap.add_argument("--gain", type=float, default=config.TAGGER_GAIN_DB, help="tagger gain, dB")
+    ap.add_argument("--gain", type=float, help="tagger gain, dB (default: from the sensitivity profile)")
+    ap.add_argument("--sensitivity", choices=list(config.SENSITIVITY_PROFILES), default=config.SENSITIVITY)
     ap.add_argument("--threshold", type=float, help="one on-threshold for every category (default: per-category from config)")
     ap.add_argument("--cpu", action="store_true", help="force CPU inference")
     ap.add_argument("--log", action="store_true", help="write all 527 probabilities per hop to recordings/")
@@ -265,6 +266,9 @@ def main() -> None:
                     help="ALSO save the raw 48 kHz stereo audio of this run (opt-in; for offline re-tuning)")
     ap.add_argument("--no-color", action="store_true")
     args = ap.parse_args()
+    config.set_sensitivity(args.sensitivity)
+    if args.gain is None:
+        args.gain = config.tagger_gain_db()
     st = Style(not args.no_color and sys.stdout.isatty())
 
     print("Loading CNN14 ...", flush=True)

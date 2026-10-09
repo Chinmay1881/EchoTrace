@@ -107,6 +107,12 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       metrics.md headline = "safer" line generated from the numbers; the "every miss was a detection miss" sentence
       is only emitted if re-matching the expected pattern on the detected events confirms it.
       MetricsPanel shows "not measured" for null latency. Latency still null until a live run_*_events.jsonl exists.
+      Sensitivity (~15:00, user request): config.SENSITIVITY_PROFILES normal (old thresholds) / high (default;
+      all 0.20/0.10, IMPACT 0.12/0.06; gain unchanged - +4 dB tested, no benefit). Checked on speech/silence first:
+      0 events (max speech/silence category score 0.03). Eval high: 9/10, L/C/R 71% (14 UNKNOWN), 0 vs 20
+      no-incident, 7 vs 56 total; normal: 7/10, 76%, 0 vs 19, 3 vs 49. metrics.md discloses the post-hoc change
+      and shows both. --sensitivity on serve.py / run_pipeline.py / live_topk.py / eval.py; tests pin "normal"
+      (tests/conftest.py). frontend labels.ts CATEGORY_THRESHOLDS mirrors both profiles.
       docs/backend_readme_section.md for Person B's README.
 - [ ] Phase 6 — Open-source polish
 
@@ -193,7 +199,8 @@ All messages `{type, data}`. Every data has `source` ("LIVE"|"RECORDED"|"SIMULAT
 - frame: `{top:[{label,p}] (5), categories:{FOOTSTEPS:p,...}, rms_db:[l,r]}`
 - event: `{id, t_start, t_end, category, label, confidence, zone:"LEFT"|"CENTRE"|"RIGHT"|"UNKNOWN", angle_deg|null}`
 - sequence: `{id, event_ids, pattern, risk:"GREEN"|"AMBER"|"RED", explanation:[str], summary, trajectory:[zone,...]}`
-- status: `{risk, latency_ms, device, host_api, sample_rate, channels, localization:"ON"|"OFF", model_device:"cpu"|"cuda", dropped_blocks}`
+- status: `{risk, latency_ms, device, host_api, sample_rate, channels, localization:"ON"|"OFF", model_device:"cpu"|"cuda", dropped_blocks, sensitivity:"normal"|"high"}`
+  (`sensitivity` added 2026-10-09 ~15:00 at the user's request: the active detection-threshold profile)
 latency_ms = capture of the audio block that triggered the event -> WS send time.
 
 GET /api/metrics returns docs/metrics.json AS-IS (no rewriting; extra keys pass through), or {} if missing

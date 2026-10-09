@@ -62,6 +62,7 @@ class StatusData(Base):
     localization: Literal["ON", "OFF"]
     model_device: Literal["cpu", "cuda"]
     dropped_blocks: int
+    sensitivity: Literal["normal", "high"]   # detection threshold profile (config.SENSITIVITY_PROFILES)
 
 
 class FrameMsg(BaseModel):

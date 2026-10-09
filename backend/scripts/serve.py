@@ -15,6 +15,7 @@ import argparse
 import _bootstrap  # noqa: F401
 import uvicorn
 
+from echotrace import config
 from echotrace.api.server import FRONTEND_DIST, Engine, create_app
 
 SOURCE = {"live": "LIVE", "recorded": "RECORDED", "wav": "RECORDED", "sim": "SIMULATED"}
@@ -30,14 +31,18 @@ def main() -> None:
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--cpu", action="store_true", help="run CNN14 on the CPU")
+    ap.add_argument("--sensitivity", choices=list(config.SENSITIVITY_PROFILES), default=config.SENSITIVITY,
+                    help="detection threshold profile (default: %(default)s)")
     args = ap.parse_args()
+    config.set_sensitivity(args.sensitivity)
 
     initial = {"source": SOURCE[args.source], "device": args.device, "file": args.file,
                "scenario": args.scenario if args.source == "sim" else None}
     app = create_app(Engine(force_cpu=args.cpu), initial)
     shown = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
     print("=" * 70)
-    print(f"EchoTrace  starting {initial['source']}  ->  dashboard  http://{shown}:{args.port}/")
+    print(f"EchoTrace  starting {initial['source']}  ->  dashboard  http://{shown}:{args.port}/   "
+          f"sensitivity {config.SENSITIVITY} (gain {config.tagger_gain_db():+.0f} dB)")
     print(f"           WebSocket ws://{shown}:{args.port}/ws    status http://{shown}:{args.port}/api/status")
     if not (FRONTEND_DIST / "index.html").is_file():
         print("           (frontend/dist not built yet: / shows a placeholder until it is)")

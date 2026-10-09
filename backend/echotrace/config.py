@@ -51,12 +51,38 @@ CATEGORY_THRESHOLDS: dict[str, tuple[float, float]] = {
 }
 
 
-def thresholds(category: str) -> tuple[float, float]:
-    """(on, off) hysteresis thresholds for a category."""
-    return CATEGORY_THRESHOLDS.get(category, (ON_THRESHOLD, OFF_THRESHOLD))
+# ---------------------------------------------------------------- sensitivity profiles
+# "normal" = the thresholds above (first evaluation run). "high" = lower thresholds for quiet/real rooms,
+# chosen after checking false triggers on speech/silence (see docs/metrics.md, which shows both results).
+SENSITIVITY = "high"
+SENSITIVITY_PROFILES: dict[str, dict] = {
+    "normal": {"default": (ON_THRESHOLD, OFF_THRESHOLD), "thresholds": dict(CATEGORY_THRESHOLDS),
+               "gain_db_delta": 0.0},
+    "high": {"default": (0.20, 0.10),
+             "thresholds": {"IMPACT": (0.12, 0.06)},
+             "gain_db_delta": 0.0},
+}
 
 
-ON_N, ON_M = 1, 2              # N of the last M windows >= ON to open an event
+def set_sensitivity(mode: str) -> None:
+    """Select the active profile (CLI flags call this before anything is built)."""
+    global SENSITIVITY
+    if mode not in SENSITIVITY_PROFILES:
+        raise ValueError(f"sensitivity must be one of {list(SENSITIVITY_PROFILES)}, got {mode!r}")
+    SENSITIVITY = mode
+
+
+def thresholds(category: str, sensitivity: str | None = None) -> tuple[float, float]:
+    """(on, off) hysteresis thresholds for a category under the active (or given) sensitivity."""
+    prof = SENSITIVITY_PROFILES[sensitivity or SENSITIVITY]
+    return prof["thresholds"].get(category, prof["default"])
+
+
+def tagger_gain_db(sensitivity: str | None = None) -> float:
+    return TAGGER_GAIN_DB + SENSITIVITY_PROFILES[sensitivity or SENSITIVITY]["gain_db_delta"]
+
+
+ON_N, ON_M = 1, 2              # N of the last M windows >= ON to open an event (already the most lenient)
 OFF_HOPS = 1                   # consecutive windows < OFF to close it (events are emitted on close)
 MAX_EVENT_S = 2.0              # a longer sound is emitted in 2 s pieces (keeps latency bounded; walking
                                # becomes several FOOTSTEPS events, so its trajectory can move)

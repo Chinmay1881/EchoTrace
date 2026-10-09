@@ -11,14 +11,10 @@ export const CATEGORY_COLOR: Record<string, string> = {
   DOOR: "#a1c4a5",
 };
 
-// Event (on) thresholds - mirror backend/echotrace/config.py (ON_THRESHOLD 0.30, CATEGORY_THRESHOLDS IMPACT 0.20).
-export const CATEGORY_THRESHOLD: Record<string, number> = {
-  FOOTSTEPS: 0.3,
-  IMPACT: 0.2,
-  DISTRESS: 0.3,
-  ALARM: 0.3,
-  GLASS: 0.3,
-  DOOR: 0.3,
+// Event (on) thresholds per sensitivity profile - mirror backend/echotrace/config.py SENSITIVITY_PROFILES.
+export const CATEGORY_THRESHOLDS: Record<"normal" | "high", Record<string, number>> = {
+  normal: { FOOTSTEPS: 0.3, IMPACT: 0.2, DISTRESS: 0.3, ALARM: 0.3, GLASS: 0.3, DOOR: 0.3 },
+  high: { FOOTSTEPS: 0.2, IMPACT: 0.12, DISTRESS: 0.2, ALARM: 0.2, GLASS: 0.2, DOOR: 0.2 },
 };
 
 export const CATEGORY_NAME: Record<string, string> = {

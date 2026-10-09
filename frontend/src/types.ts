@@ -52,6 +52,7 @@ export interface StatusData extends Base {
   localization: "ON" | "OFF";
   model_device: "cpu" | "cuda";
   dropped_blocks: number;
+  sensitivity?: "normal" | "high"; // detection threshold profile (optional: older servers/mock omit it)
   // extras only present on GET /api/status
   error?: string | null;
   tagger?: string;

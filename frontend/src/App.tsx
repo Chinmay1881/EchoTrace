@@ -50,7 +50,7 @@ export default function App() {
 
       <section className="bottom">
         <Timeline events={state.events} now={state.now} highlight={active} />
-        <LiveMeters frame={state.frame} />
+        <LiveMeters frame={state.frame} sensitivity={state.status?.sensitivity} />
       </section>
 
       <footer className="footer">

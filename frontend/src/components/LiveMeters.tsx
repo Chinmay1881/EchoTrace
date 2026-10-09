@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FrameData } from "../types";
-import { CATEGORIES, CATEGORY_COLOR, CATEGORY_NAME, CATEGORY_THRESHOLD } from "../labels";
+import { CATEGORIES, CATEGORY_COLOR, CATEGORY_NAME, CATEGORY_THRESHOLDS } from "../labels";
 
 const LO = -70;
 const HI = -10;
@@ -30,7 +30,7 @@ function useHeldPeaks(frame: FrameData | null) {
   return peaks;
 }
 
-export function LiveMeters({ frame }: { frame: FrameData | null }) {
+export function LiveMeters({ frame, sensitivity }: { frame: FrameData | null; sensitivity?: "normal" | "high" }) {
   const [l, r] = frame?.rms_db ?? [LO, LO];
   const peaks = useHeldPeaks(frame);
   return (
@@ -50,7 +50,7 @@ export function LiveMeters({ frame }: { frame: FrameData | null }) {
         {CATEGORIES.map((c) => {
           const p = frame?.categories[c] ?? 0;
           const peak = peaks[c] ?? 0;
-          const thr = CATEGORY_THRESHOLD[c];
+          const thr = CATEGORY_THRESHOLDS[sensitivity ?? "normal"][c];
           const over = peak >= thr;
           return (
             <div key={c} className={`cat-row ${over ? "over" : ""}`}>

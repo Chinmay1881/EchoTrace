@@ -42,6 +42,12 @@ export function StatusBanner({ status, connection, headline, children }: Props) 
             localization {status?.localization ?? "-"}
           </span>
           <span className="chip">{status ? (status.model_device === "cuda" ? "GPU" : "CPU") : "-"}</span>
+          {status?.sensitivity && (
+            <span className={`chip ${status.sensitivity === "high" ? "sens-high" : ""}`}
+              title="detection threshold profile (see docs/metrics.md for both results)">
+              sensitivity {status.sensitivity.toUpperCase()}
+            </span>
+          )}
           {status && status.dropped_blocks > 0 && <span className="chip warn">dropped {status.dropped_blocks}</span>}
         </div>
         <div className="device" title={status?.host_api}>

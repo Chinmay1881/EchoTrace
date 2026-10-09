@@ -116,6 +116,7 @@ button { font: inherit; color: inherit; }
 }
 .chip.ok { border-color: #2c6e45; }
 .chip.warn { border-color: #8a5a00; color: #ffcf70; }
+.chip.sens-high { border-color: #4f9dde; color: #bfe0ff; }
 .chip .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; background: #888; }
 .conn-open .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .conn-connecting .dot { background: var(--amber); }

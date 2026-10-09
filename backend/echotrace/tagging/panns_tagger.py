@@ -60,11 +60,11 @@ def pick_torch_device(force_cpu: bool = False) -> str:
 
 
 class PannsTagger:
-    def __init__(self, force_cpu: bool = False, gain_db: float = config.TAGGER_GAIN_DB):
+    def __init__(self, force_cpu: bool = False, gain_db: float | None = None):
         import torch
         from panns_inference.models import Cnn14
 
-        self.gain_db = gain_db
+        self.gain_db = config.tagger_gain_db() if gain_db is None else gain_db   # per sensitivity profile
         self.labels = load_labels()
         self.device = pick_torch_device(force_cpu)
         if not config.WEIGHTS_FILE.exists():

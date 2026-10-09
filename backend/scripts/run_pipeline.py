@@ -30,9 +30,11 @@ def main() -> None:
     ap.add_argument("--seconds", type=float, help="stop after this many seconds of stream time")
     ap.add_argument("--cpu", action="store_true")
     ap.add_argument("--frames", action="store_true", help="also print every frame")
+    ap.add_argument("--sensitivity", choices=list(config.SENSITIVITY_PROFILES), default=config.SENSITIVITY)
     ap.add_argument("--scenario", default="all", help="sim: demo | breakin | all")
     ap.add_argument("--no-log", action="store_true", help="don't write recordings/run_*_events.jsonl")
     args = ap.parse_args()
+    config.set_sensitivity(args.sensitivity)
 
     import os
     os.system("")  # ANSI colours in the Windows console

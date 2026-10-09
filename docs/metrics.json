@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-10-09T14:53:30",
+  "generated_at": "2026-10-09T15:15:12",
   "clips": 10,
-  "sequence_accuracy": 0.7,
+  "sequence_accuracy": 0.9,
   "false_alerts": {
     "echotrace": 0,
-    "baseline": 19,
+    "baseline": 20,
     "reduction_pct": 100.0
   },
-  "lcr_accuracy": 0.755,
+  "lcr_accuracy": 0.714,
   "latency_ms": {
     "mean": null,
     "p95": null
@@ -34,14 +34,14 @@
     {
       "clip": "breakin_03",
       "expected": "BREAKIN_ALARM/RED",
-      "got": "NONE/GREEN",
-      "ok": false
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true
     },
     {
       "clip": "breakin_04",
       "expected": "BREAKIN_ALARM/RED",
-      "got": "NONE/GREEN",
-      "ok": false
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true
     },
     {
       "clip": "chatter_01",
@@ -76,20 +76,20 @@
   ],
   "false_alerts_detail": {
     "echotrace": 0,
-    "baseline": 19,
+    "baseline": 20,
     "reduction_pct": 100.0,
     "clips": 5
   },
   "totals": {
-    "echotrace_alerts": 3,
-    "baseline_alerts": 49,
-    "events_detected": 49
+    "echotrace_alerts": 7,
+    "baseline_alerts": 56,
+    "events_detected": 56
   },
   "lcr": {
-    "accuracy": 0.755,
-    "events": 49,
-    "correct": 37,
-    "unknown": 10
+    "accuracy": 0.714,
+    "events": 56,
+    "correct": 40,
+    "unknown": 14
   },
   "detection": {
     "GLASS": {
@@ -98,7 +98,7 @@
     },
     "IMPACT": {
       "labelled": 6,
-      "detected": 5
+      "detected": 6
     },
     "ALARM": {
       "labelled": 5,
@@ -132,23 +132,24 @@
         "GLASS@LEFT",
         "GLASS@LEFT",
         "GLASS@LEFT",
+        "IMPACT@UNKNOWN",
         "GLASS@UNKNOWN",
         "IMPACT@RIGHT",
         "ALARM@CENTRE",
         "ALARM@CENTRE"
       ],
       "echotrace_alerts": 2,
-      "baseline_alerts": 7,
+      "baseline_alerts": 8,
       "alerts": [
         {
           "risk": "AMBER",
           "pattern": "GLASS_IMPACT",
-          "event_id": "e5"
+          "event_id": "e4"
         },
         {
           "risk": "RED",
           "pattern": "BREAKIN_ALARM",
-          "event_id": "e6"
+          "event_id": "e7"
         }
       ]
     },
@@ -158,6 +159,7 @@
       "got": "NONE/GREEN",
       "ok": false,
       "events": [
+        "IMPACT@UNKNOWN",
         "IMPACT@CENTRE",
         "IMPACT@UNKNOWN",
         "IMPACT@UNKNOWN",
@@ -166,39 +168,65 @@
         "IMPACT@UNKNOWN"
       ],
       "echotrace_alerts": 0,
-      "baseline_alerts": 6,
+      "baseline_alerts": 7,
       "alerts": []
     },
     {
       "clip": "breakin_03",
       "expected": "BREAKIN_ALARM/RED",
-      "got": "NONE/GREEN",
-      "ok": false,
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true,
       "events": [
         "GLASS@LEFT",
         "GLASS@LEFT",
+        "IMPACT@UNKNOWN",
+        "ALARM@CENTRE",
         "ALARM@CENTRE",
         "IMPACT@UNKNOWN",
         "GLASS@LEFT"
       ],
-      "echotrace_alerts": 0,
-      "baseline_alerts": 5,
-      "alerts": []
+      "echotrace_alerts": 2,
+      "baseline_alerts": 7,
+      "alerts": [
+        {
+          "risk": "AMBER",
+          "pattern": "GLASS_IMPACT",
+          "event_id": "e3"
+        },
+        {
+          "risk": "RED",
+          "pattern": "BREAKIN_ALARM",
+          "event_id": "e4"
+        }
+      ]
     },
     {
       "clip": "breakin_04",
       "expected": "BREAKIN_ALARM/RED",
-      "got": "NONE/GREEN",
-      "ok": false,
+      "got": "BREAKIN_ALARM/RED",
+      "ok": true,
       "events": [
         "GLASS@LEFT",
         "GLASS@LEFT",
+        "IMPACT@UNKNOWN",
+        "ALARM@CENTRE",
         "ALARM@CENTRE",
         "ALARM@CENTRE"
       ],
-      "echotrace_alerts": 0,
-      "baseline_alerts": 4,
-      "alerts": []
+      "echotrace_alerts": 2,
+      "baseline_alerts": 6,
+      "alerts": [
+        {
+          "risk": "AMBER",
+          "pattern": "GLASS_IMPACT",
+          "event_id": "e3"
+        },
+        {
+          "risk": "RED",
+          "pattern": "BREAKIN_ALARM",
+          "event_id": "e4"
+        }
+      ]
     },
     {
       "clip": "chatter_01",
@@ -269,10 +297,11 @@
         "GLASS@LEFT",
         "GLASS@LEFT",
         "GLASS@LEFT",
+        "GLASS@LEFT",
         "GLASS@LEFT"
       ],
       "echotrace_alerts": 0,
-      "baseline_alerts": 7,
+      "baseline_alerts": 8,
       "alerts": []
     },
     {
@@ -287,5 +316,166 @@
       "baseline_alerts": 1,
       "alerts": []
     }
-  ]
+  ],
+  "sensitivity": "high",
+  "gain_db": 20.0,
+  "thresholds": {
+    "FOOTSTEPS": [
+      0.2,
+      0.1
+    ],
+    "IMPACT": [
+      0.12,
+      0.06
+    ],
+    "DISTRESS": [
+      0.2,
+      0.1
+    ],
+    "ALARM": [
+      0.2,
+      0.1
+    ],
+    "GLASS": [
+      0.2,
+      0.1
+    ],
+    "DOOR": [
+      0.2,
+      0.1
+    ]
+  },
+  "comparison": {
+    "normal": {
+      "sensitivity": "normal",
+      "gain_db": 20.0,
+      "thresholds": {
+        "FOOTSTEPS": [
+          0.3,
+          0.15
+        ],
+        "IMPACT": [
+          0.2,
+          0.1
+        ],
+        "DISTRESS": [
+          0.3,
+          0.15
+        ],
+        "ALARM": [
+          0.3,
+          0.15
+        ],
+        "GLASS": [
+          0.3,
+          0.15
+        ],
+        "DOOR": [
+          0.3,
+          0.15
+        ]
+      },
+      "sequence_accuracy": 0.7,
+      "clips_ok": 7,
+      "clips": 10,
+      "lcr_accuracy": 0.755,
+      "lcr": {
+        "accuracy": 0.755,
+        "events": 49,
+        "correct": 37,
+        "unknown": 10
+      },
+      "detection": {
+        "GLASS": {
+          "labelled": 6,
+          "detected": 5
+        },
+        "IMPACT": {
+          "labelled": 6,
+          "detected": 5
+        },
+        "ALARM": {
+          "labelled": 5,
+          "detected": 4
+        }
+      },
+      "false_alerts": {
+        "echotrace": 0,
+        "baseline": 19,
+        "reduction_pct": 100.0,
+        "clips": 5
+      },
+      "totals": {
+        "echotrace_alerts": 3,
+        "baseline_alerts": 49,
+        "events_detected": 49
+      }
+    },
+    "high": {
+      "sensitivity": "high",
+      "gain_db": 20.0,
+      "thresholds": {
+        "FOOTSTEPS": [
+          0.2,
+          0.1
+        ],
+        "IMPACT": [
+          0.12,
+          0.06
+        ],
+        "DISTRESS": [
+          0.2,
+          0.1
+        ],
+        "ALARM": [
+          0.2,
+          0.1
+        ],
+        "GLASS": [
+          0.2,
+          0.1
+        ],
+        "DOOR": [
+          0.2,
+          0.1
+        ]
+      },
+      "sequence_accuracy": 0.9,
+      "clips_ok": 9,
+      "clips": 10,
+      "lcr_accuracy": 0.714,
+      "lcr": {
+        "accuracy": 0.714,
+        "events": 56,
+        "correct": 40,
+        "unknown": 14
+      },
+      "detection": {
+        "GLASS": {
+          "labelled": 6,
+          "detected": 5
+        },
+        "IMPACT": {
+          "labelled": 6,
+          "detected": 6
+        },
+        "ALARM": {
+          "labelled": 5,
+          "detected": 4
+        }
+      },
+      "false_alerts": {
+        "echotrace": 0,
+        "baseline": 20,
+        "reduction_pct": 100.0,
+        "clips": 5
+      },
+      "totals": {
+        "echotrace_alerts": 7,
+        "baseline_alerts": 56,
+        "events_detected": 56
+      }
+    }
+  },
+  "comparison_note": "thresholds were lowered (normal -> high) after the first evaluation; both shown"
 }
