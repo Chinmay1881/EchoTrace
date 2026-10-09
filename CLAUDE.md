@@ -83,7 +83,11 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       fallback, picked up without restart) or a placeholder. Startup: LIVE by default, falls back to SIMULATED
       (labelled, error shown in /api/status) if the mic can't open.
       OPEN QUESTION for the user/teammate: the mock uses angle_deg + = LEFT; the backend uses + = RIGHT.
-- [ ] Phase 4 — Dashboard
+- [x] Phase 4 — Dashboard (frontend/): React 18 + Vite 5 + TS, plain CSS. src/useEchoTrace.ts (WS + reconnect,
+      upsert by id, clears on session-prefix/source change), components StatusBanner, Controls, AcousticMap,
+      SequencePanel (+detail), Timeline, LiveMeters, MetricsPanel. `npm run build` -> frontend/dist (gitignored;
+      a fresh clone must build once). Dev: `npm run dev` on :5173 proxies /api + /ws to 127.0.0.1:8000.
+      Verified by screenshots via Edge DevTools protocol at 1366x768 and 1920x1080 (no page scroll).
 - [ ] Phase 5 — Proof + fallback
 - [ ] Phase 6 — Open-source polish
 
@@ -184,7 +188,8 @@ GET /api/metrics returns docs/metrics.json AS-IS (no rewriting; extra keys pass 
 ```
 
 ## Ownership (from the user)
-- Person B (teammate): frontend/, README.md. Person C: backend/echotrace/eval/, backend/scripts/eval.py, docs/.
+- 2026-10-09 ~13:00: Person B stopped; Claude now builds frontend/ (Phase 4). Keep frontend/mock/ + "mock" script.
+- Person B: README.md. Person C: backend/echotrace/eval/, backend/scripts/eval.py, docs/.
   pitch/ is not ours either. Never create or edit files there.
 - Offline entry point for eval: `echotrace.pipeline.run_wav(path, tagger=None, *, force_cpu=False,
   calibration=None, start_wall=None, keep_frames=True) -> list[dict]` (all WS messages, source RECORDED,
