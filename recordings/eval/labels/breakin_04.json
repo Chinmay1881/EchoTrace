@@ -1,0 +1,21 @@
+{
+  "clip": "breakin_04",
+  "wav": "breakin_04.wav",
+  "expected_pattern": "BREAKIN_ALARM",
+  "expected_risk": "RED",
+  "events": [
+    {
+      "category": "GLASS",
+      "zone": "LEFT"
+    },
+    {
+      "category": "IMPACT",
+      "zone": "RIGHT"
+    },
+    {
+      "category": "ALARM",
+      "zone": "CENTRE"
+    }
+  ],
+  "notes": "Glass LEFT -> impact RIGHT -> alarm CENTRE. Recorded as demo_backup.wav at 14:30, renamed to breakin_04 (eval only; same audio, same ground truth). The RECORDED backup demo now uses a separate, unlabelled demo_fallback.wav."
+}

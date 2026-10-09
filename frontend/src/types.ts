@@ -72,10 +72,10 @@ export interface ModeResponse extends Base {
 export interface Metrics {
   generated_at: string;
   clips: number;
-  sequence_accuracy: number;
-  false_alerts: { echotrace: number; baseline: number; reduction_pct: number };
-  lcr_accuracy: number;
-  latency_ms: { mean: number; p95: number };
+  sequence_accuracy: number | null;
+  false_alerts: { echotrace: number; baseline: number; reduction_pct: number | null };
+  lcr_accuracy: number | null;
+  latency_ms: { mean: number | null; p95: number | null }; // null = not measured (never estimated)
   per_clip: { clip: string; expected: string; got: string; ok: boolean }[];
 }
 

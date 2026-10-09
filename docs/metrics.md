@@ -1,8 +1,10 @@
 # EchoTrace evaluation
 
-Generated 2026-10-09T14:40:52 by `backend/scripts/eval.py` on 10 labelled clips (`recordings/eval/`), replayed through the same pipeline as live mode.
+Generated 2026-10-09T14:53:30 by `backend/scripts/eval.py` on 10 labelled clips (`recordings/eval/`), replayed through the same pipeline as live mode.
 
-**Across 10 clips: 70% sequence accuracy, 76% L/C/R accuracy, EchoTrace raised 0 false alerts vs 19 for the classification-only baseline (-100%), latency not measured in this run.**
+**Across 10 self-recorded clips, EchoTrace raised 3 alerts vs 49 for a classification-only baseline; on the 5 no-incident clips, 0 vs 19. Every miss was a detection miss; the correlation logic was correct on everything detected.**
+
+Sequence recognition accuracy 70% (7/10 clips); L/C/R accuracy 76%; latency not measured yet (no live-run log).
 
 | Metric | EchoTrace | Classification-only baseline |
 |---|---|---|
@@ -21,8 +23,8 @@ Generated 2026-10-09T14:40:52 by `backend/scripts/eval.py` on 10 labelled clips 
 | breakin_01 | BREAKIN_ALARM/RED | BREAKIN_ALARM/RED | GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, GLASS@UNKNOWN, IMPACT@RIGHT, ALARM@CENTRE, ALARM@CENTRE | 2 | 7 | yes |
 | breakin_02 | BREAKIN_ALARM/RED | NONE/GREEN | IMPACT@CENTRE, IMPACT@UNKNOWN, IMPACT@UNKNOWN, IMPACT@UNKNOWN, IMPACT@CENTRE, IMPACT@UNKNOWN | 0 | 6 | **no** |
 | breakin_03 | BREAKIN_ALARM/RED | NONE/GREEN | GLASS@LEFT, GLASS@LEFT, ALARM@CENTRE, IMPACT@UNKNOWN, GLASS@LEFT | 0 | 5 | **no** |
+| breakin_04 | BREAKIN_ALARM/RED | NONE/GREEN | GLASS@LEFT, GLASS@LEFT, ALARM@CENTRE, ALARM@CENTRE | 0 | 4 | **no** |
 | chatter_01 | NONE/GREEN | NONE/GREEN | - | 0 | 0 | yes |
-| demo_backup | BREAKIN_ALARM/RED | NONE/GREEN | GLASS@LEFT, GLASS@LEFT, ALARM@CENTRE, ALARM@CENTRE | 0 | 4 | **no** |
 | glass_impact_01 | GLASS_IMPACT/AMBER | GLASS_IMPACT/AMBER | GLASS@LEFT, IMPACT@UNKNOWN, GLASS@UNKNOWN, GLASS@UNKNOWN, GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, IMPACT@RIGHT | 1 | 8 | yes |
 | lone_alarm_01 | NONE/GREEN | NONE/GREEN | ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE, ALARM@CENTRE | 0 | 11 | yes |
 | lone_glass_01 | NONE/GREEN | NONE/GREEN | GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, GLASS@LEFT, GLASS@LEFT | 0 | 7 | yes |
@@ -32,7 +34,7 @@ Generated 2026-10-09T14:40:52 by `backend/scripts/eval.py` on 10 labelled clips 
 
 - **breakin_02**: labelled GLASS, ALARM not detected (no event above threshold), so the BREAKIN_ALARM chain could not form; got NONE/GREEN
 - **breakin_03**: all labelled categories detected, but not in the labelled order within the pattern's gap limit (detected order: GLASS -> GLASS -> ALARM -> IMPACT -> GLASS); got NONE/GREEN
-- **demo_backup**: labelled IMPACT not detected (no event above threshold), so the BREAKIN_ALARM chain could not form; got NONE/GREEN
+- **breakin_04**: labelled IMPACT not detected (no event above threshold), so the BREAKIN_ALARM chain could not form; got NONE/GREEN
 
 ## Detection per category (labelled events with at least one detection)
 

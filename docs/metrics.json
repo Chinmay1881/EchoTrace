@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T14:40:52",
+  "generated_at": "2026-10-09T14:53:30",
   "clips": 10,
   "sequence_accuracy": 0.7,
   "false_alerts": {
@@ -38,16 +38,16 @@
       "ok": false
     },
     {
+      "clip": "breakin_04",
+      "expected": "BREAKIN_ALARM/RED",
+      "got": "NONE/GREEN",
+      "ok": false
+    },
+    {
       "clip": "chatter_01",
       "expected": "NONE/GREEN",
       "got": "NONE/GREEN",
       "ok": true
-    },
-    {
-      "clip": "demo_backup",
-      "expected": "BREAKIN_ALARM/RED",
-      "got": "NONE/GREEN",
-      "ok": false
     },
     {
       "clip": "glass_impact_01",
@@ -186,17 +186,7 @@
       "alerts": []
     },
     {
-      "clip": "chatter_01",
-      "expected": "NONE/GREEN",
-      "got": "NONE/GREEN",
-      "ok": true,
-      "events": [],
-      "echotrace_alerts": 0,
-      "baseline_alerts": 0,
-      "alerts": []
-    },
-    {
-      "clip": "demo_backup",
+      "clip": "breakin_04",
       "expected": "BREAKIN_ALARM/RED",
       "got": "NONE/GREEN",
       "ok": false,
@@ -208,6 +198,16 @@
       ],
       "echotrace_alerts": 0,
       "baseline_alerts": 4,
+      "alerts": []
+    },
+    {
+      "clip": "chatter_01",
+      "expected": "NONE/GREEN",
+      "got": "NONE/GREEN",
+      "ok": true,
+      "events": [],
+      "echotrace_alerts": 0,
+      "baseline_alerts": 0,
       "alerts": []
     },
     {

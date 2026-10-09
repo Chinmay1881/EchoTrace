@@ -16,7 +16,7 @@ const BUTTONS: { source: Source; label: string }[] = [
 export function Controls({ current, onCleared }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [file, setFile] = useState("demo_backup.wav");
+  const [file, setFile] = useState("demo_fallback.wav"); // backend falls back to breakin_01.wav if missing
 
   const switchTo = async (source: Source) => {
     setBusy(source);

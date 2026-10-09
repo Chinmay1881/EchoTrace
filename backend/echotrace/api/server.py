@@ -48,9 +48,11 @@ EVAL_DIR = config.RECORDINGS_DIR / "eval"
 
 
 def default_demo_clip() -> Path | None:
-    preferred = EVAL_DIR / config.RECORDED_DEFAULT_CLIP
-    if preferred.is_file():
-        return preferred
+    """recordings/eval/demo_fallback.wav, else breakin_01.wav, else the newest recordings/demo*.wav."""
+    for name in (config.RECORDED_DEFAULT_CLIP, config.RECORDED_FALLBACK_CLIP):
+        for d in (EVAL_DIR, config.RECORDINGS_DIR):
+            if (d / name).is_file():
+                return d / name
     clips = sorted(config.RECORDINGS_DIR.glob("demo*.wav"), key=lambda p: p.stat().st_mtime, reverse=True)
     return clips[0] if clips else None
 
@@ -68,6 +70,10 @@ def resolve_wav(file: str | None) -> Path:
             if cand.suffix.lower() != ".wav":
                 raise ModeError(f"{cand.name} is not a .wav file")
             return cand.resolve()
+    if p.name == config.RECORDED_DEFAULT_CLIP:       # backup clip not recorded yet: use the verified fallback
+        clip = default_demo_clip()
+        if clip is not None:
+            return clip.resolve()
     raise ModeError(f"file not found: {file}")
 
 

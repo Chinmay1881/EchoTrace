@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getMetrics } from "../api";
 import type { Metrics } from "../types";
 
-const fmtAcc = (v: number | undefined) =>
+const fmtAcc = (v: number | null | undefined) =>
   v === undefined || v === null ? "-" : v <= 1 ? `${Math.round(v * 100)}%` : `${Math.round(v)}%`;
 
 export function MetricsPanel() {
@@ -33,12 +33,24 @@ export function MetricsPanel() {
             <>
               <div className="metric big">
                 False alerts: <b>EchoTrace {m.false_alerts.echotrace}</b> vs baseline {m.false_alerts.baseline}
-                <span className="good"> (−{Math.round(m.false_alerts.reduction_pct)}%)</span>
+                {m.false_alerts.reduction_pct !== null && m.false_alerts.reduction_pct !== undefined && (
+                  <span className="good"> (−{Math.round(m.false_alerts.reduction_pct)}%)</span>
+                )}
               </div>
               <div className="metric-row">
                 <span>Sequence accuracy <b>{fmtAcc(m.sequence_accuracy)}</b></span>
                 <span>L/C/R accuracy <b>{fmtAcc(m.lcr_accuracy)}</b></span>
-                {m.latency_ms && <span>Latency <b>{Math.round(m.latency_ms.mean)}</b> ms (p95 {Math.round(m.latency_ms.p95)})</span>}
+                <span>
+                  Latency{" "}
+                  {m.latency_ms && m.latency_ms.mean !== null && m.latency_ms.mean !== undefined ? (
+                    <>
+                      <b>{Math.round(m.latency_ms.mean)}</b> ms
+                      {m.latency_ms.p95 !== null && m.latency_ms.p95 !== undefined && ` (p95 ${Math.round(m.latency_ms.p95)})`}
+                    </>
+                  ) : (
+                    <b>not measured</b>
+                  )}
+                </span>
                 <span className="muted">{m.clips} clips</span>
               </div>
             </>

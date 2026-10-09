@@ -53,13 +53,14 @@ The result is saved only if it's consistent; otherwise the script explains why a
 ```powershell
 backend\.venv\Scripts\python.exe backend\scripts\serve.py                                     # LIVE microphone
 backend\.venv\Scripts\python.exe backend\scripts\serve.py --source sim                        # SIMULATED scenario
-backend\.venv\Scripts\python.exe backend\scripts\serve.py --source recorded --file demo_backup.wav   # RECORDED clip
+backend\.venv\Scripts\python.exe backend\scripts\serve.py --source recorded                         # RECORDED backup clip
 ```
 
 Open **http://localhost:8000/**. The Live / Recorded / Simulation buttons switch sources at runtime.
 Every screen and message carries its source, and simulated or recorded data is never shown as live.
-RECORDED loops the clip in real time with 10 s of silence between loops. A bare file name is looked up in
-`recordings/eval/`. If the microphone can't be opened at startup, the server falls back to SIMULATED, clearly
+RECORDED loops the clip in real time with 10 s of silence between loops. By default it plays
+`recordings/eval/demo_fallback.wav` (a demo-only clip with no label, so not part of the evaluation), or `breakin_01.wav`
+if that file is missing. `--file <name>` picks another clip; a bare file name is looked up in `recordings/eval/`. If the microphone can't be opened at startup, the server falls back to SIMULATED, clearly
 labelled, and shows the error in `/api/status`.
 
 Other tools: `scripts/live_topk.py` (what CNN14 hears, with a guided test), `scripts/record_clip.py`

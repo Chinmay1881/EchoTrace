@@ -71,6 +71,35 @@ def failure_reason(r: ClipResult) -> str:
             f"(detected order: {order}); got {r.got_str}")
 
 
+def misses_are_detection_misses(results: list[ClipResult]) -> bool:
+    """True only if, for every failed clip, the expected pattern genuinely cannot be formed from what was
+    detected (re-checked here with the pattern matcher on the detected events, ignoring sequence boundaries).
+    If the detections did contain the chain, the miss would be the correlation logic's fault -> False."""
+    from echotrace.correlation.patterns import PATTERNS, match_pattern
+    from echotrace.events import Event
+    by_name = {p.name: p for p in PATTERNS}
+    for r in results:
+        if r.ok:
+            continue
+        if r.expected_pattern not in by_name:            # expected NONE but got an alert: not a detection miss
+            return False
+        evs = [Event(e["id"], e["t_start"], e["t_end"], e["category"], e["label"], e["confidence"], e["zone"], None)
+               for e in r.events]
+        if match_pattern(evs, by_name[r.expected_pattern]) is not None:
+            return False
+    return True
+
+
+def safer_line(m: dict, results: list[ClipResult]) -> str:
+    fa, tot = m["false_alerts_detail"], m["totals"]
+    line = (f"Across {m['clips']} self-recorded clips, EchoTrace raised {tot['echotrace_alerts']} alerts vs "
+            f"{tot['baseline_alerts']} for a classification-only baseline; on the {fa['clips']} no-incident clips, "
+            f"{fa['echotrace']} vs {fa['baseline']}.")
+    if any(not r.ok for r in results) and misses_are_detection_misses(results):
+        line += " Every miss was a detection miss; the correlation logic was correct on everything detected."
+    return line
+
+
 def headline(m: dict) -> str:
     fa = m["false_alerts"]
     lat = m["latency_ms"]["mean"]
@@ -90,7 +119,12 @@ def markdown(m: dict, results: list[ClipResult]) -> str:
         f"Generated {m['generated_at']} by `backend/scripts/eval.py` on {m['clips']} labelled clips "
         "(`recordings/eval/`), replayed through the same pipeline as live mode.",
         "",
-        f"**{headline(m)}**",
+        f"**{safer_line(m, results)}**",
+        "",
+        f"Sequence recognition accuracy {fmt_pct(m['sequence_accuracy'])} "
+        f"({sum(r.ok for r in results)}/{len(results)} clips); L/C/R accuracy {fmt_pct(m['lcr_accuracy'])}; "
+        + ("latency not measured yet (no live-run log)." if m['latency_ms']['mean'] is None else
+           f"latency {m['latency_ms']['mean']:.0f} ms mean, {m['latency_ms']['p95']:.0f} ms p95 (live)."),
         "",
         "| Metric | EchoTrace | Classification-only baseline |",
         "|---|---|---|",
@@ -138,10 +172,15 @@ def main() -> int:
     ap.add_argument("--no-write", action="store_true", help="print only, don't write docs/metrics.*")
     args = ap.parse_args()
 
+    # only clips with a label file are evaluated (e.g. demo_fallback.wav is a demo clip, not eval data)
     labels = sorted((EVAL_DIR / "labels").glob("*.json"))
     if not labels:
         print(f"no labels in {EVAL_DIR / 'labels'}")
         return 1
+    labelled = {json.loads(p.read_text(encoding="utf-8"))["wav"] for p in labels}
+    unlabelled = sorted(w.name for w in EVAL_DIR.glob("*.wav") if w.name not in labelled)
+    if unlabelled:
+        print(f"not evaluated (no label file): {', '.join(unlabelled)}")
     print(f"Loading CNN14 ({'cpu' if args.cpu else 'auto'}) ...", flush=True)
     tagger = default_tagger(args.cpu)
     results = []
@@ -171,7 +210,7 @@ def main() -> int:
     for r in results:
         if not r.ok:
             print(f"FAILED {r.clip}: {failure_reason(r)}")
-    print(f"\n{headline(m)}")
+    print(f"\n{headline(m)}\n{safer_line(m, results)}")
     if not args.no_write:
         config.DOCS_DIR.mkdir(exist_ok=True)
         (config.DOCS_DIR / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")

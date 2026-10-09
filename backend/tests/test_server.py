@@ -155,12 +155,17 @@ def test_bare_filename_resolves_in_recordings_eval(tmp_path, monkeypatch):
     from echotrace.api import server
     eval_dir = tmp_path / "eval"
     eval_dir.mkdir()
-    make_wav(eval_dir / "demo_backup.wav", n_events=1)
     monkeypatch.setattr(server, "EVAL_DIR", eval_dir)
-    assert server.resolve_wav("demo_backup.wav") == (eval_dir / "demo_backup.wav").resolve()
-    assert server.resolve_wav(None) == eval_dir / "demo_backup.wav"          # default clip
+    monkeypatch.setattr(config, "RECORDINGS_DIR", tmp_path / "nothing_here")
+    make_wav(eval_dir / "breakin_01.wav", n_events=1)
+    # demo_fallback.wav not recorded yet -> the verified fallback clip, both by default and by name
+    assert server.resolve_wav(None) == eval_dir / "breakin_01.wav"
+    assert server.resolve_wav("demo_fallback.wav") == (eval_dir / "breakin_01.wav").resolve()
+    make_wav(eval_dir / "demo_fallback.wav", n_events=1)
+    assert server.resolve_wav(None) == eval_dir / "demo_fallback.wav"
+    assert server.resolve_wav("demo_fallback.wav") == (eval_dir / "demo_fallback.wav").resolve()
     with pytest.raises(server.ModeError):
-        server.resolve_wav("nope.wav")
+        server.resolve_wav("nope.wav")                                       # other names never fall back
 
 
 def test_metrics_and_root(client):

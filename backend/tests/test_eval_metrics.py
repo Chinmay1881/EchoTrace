@@ -93,6 +93,33 @@ def test_latency_from_logs(tmp_path):
     assert none["mean"] is None and none["p95"] is None and "not measured" in none["note"]
 
 
+def test_detection_miss_claim_is_checked_not_assumed():
+    import importlib.util
+    import sys
+    from pathlib import Path
+    scripts = Path(__file__).parents[1] / "scripts"
+    if str(scripts) not in sys.path:
+        sys.path.insert(0, str(scripts))                  # eval.py imports its _bootstrap helper
+    spec = importlib.util.spec_from_file_location("eval_script", scripts / "eval.py")
+    ev_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ev_mod)
+
+    def e(i, cat, t0, t1):
+        return {"id": f"e{i}", "category": cat, "zone": "CENTRE", "confidence": 0.5, "label": cat, "t_start": t0,
+                "t_end": t1}
+
+    # impact missing from the detections -> the chain can't form -> a genuine detection miss
+    miss = ClipResult("a", "BREAKIN_ALARM", "RED", BREAKIN, [e(1, "GLASS", 0, 1), e(2, "ALARM", 3, 5)], [], 2)
+    assert ev_mod.misses_are_detection_misses([miss])
+    # all three detected in order and close together, yet no alert -> correlation's fault -> no claim
+    corr = ClipResult("b", "BREAKIN_ALARM", "RED", BREAKIN,
+                      [e(1, "GLASS", 0, 1), e(2, "IMPACT", 2, 2.5), e(3, "ALARM", 4, 6)], [], 3)
+    assert not ev_mod.misses_are_detection_misses([corr])
+    # a spurious alert on a no-incident clip is not a detection miss either
+    spur = ClipResult("c", "NONE", "GREEN", [], [e(1, "GLASS", 0, 1)], [alert("AMBER", "GLASS_IMPACT")], 1)
+    assert not ev_mod.misses_are_detection_misses([spur])
+
+
 def test_build_metrics_has_the_agreed_shape():
     m = build_metrics(results(), {"mean": 90.0, "p95": 99.0, "n": 2, "sources": [], "note": ""}, "2026-10-09T15:00:00")
     Metrics.model_validate(m)

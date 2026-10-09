@@ -101,8 +101,12 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
       NO thresholds were tuned on the eval set (user's honesty rule: ask first, show before/after).
       Latency null: no recordings/run_*_events.jsonl yet (run run_pipeline.py --source live, then re-run eval).
       RECORDED mode: loops in real time with RECORDED_LOOP_GAP_S silence; bare names resolve in recordings/eval/.
-      demo_backup.wav does NOT go RED (impact missed); breakin_01.wav does (verified through serve.py).
-      Dashboard MetricsPanel renders null latency as "0 ms" (Math.round(null)) - frontend fix pending user OK.
+      demo_backup.wav did NOT go RED (impact missed) -> renamed to breakin_04 (wav + label, still in the eval, same
+      results). RECORDED backup demo = recordings/eval/demo_fallback.wav (unlabelled, never evaluated; user records
+      it), falling back to breakin_01.wav (verified RED via serve.py). eval.py evaluates only clips with labels.
+      metrics.md headline = "safer" line generated from the numbers; the "every miss was a detection miss" sentence
+      is only emitted if re-matching the expected pattern on the detected events confirms it.
+      MetricsPanel shows "not measured" for null latency. Latency still null until a live run_*_events.jsonl exists.
       docs/backend_readme_section.md for Person B's README.
 - [ ] Phase 6 — Open-source polish
 

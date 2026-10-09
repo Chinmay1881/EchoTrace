@@ -109,7 +109,8 @@ RISK_DECAY_S = 20.0            # quiet time after a sequence's last event before
 CONCERNING = ["IMPACT", "DISTRESS", "ALARM", "GLASS"]   # the baseline alerts on any single one of these
 
 # ---------------------------------------------------------------- RECORDED (backup demo) mode
-RECORDED_DEFAULT_CLIP = "demo_backup.wav"   # looked up in recordings/eval/ first
+RECORDED_DEFAULT_CLIP = "demo_fallback.wav"  # backup-demo clip, NOT part of the eval (no label file)
+RECORDED_FALLBACK_CLIP = "breakin_01.wav"    # used if the default is missing (an eval clip verified to go RED)
 RECORDED_LOOP = True
 RECORDED_LOOP_GAP_S = 10.0     # silence between loops so the dashboard visibly resets between runs
 
