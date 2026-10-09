@@ -53,23 +53,26 @@ class Step:
     how: str
 
 
+PHONE = "phone at FULL volume, speaker pointed at the webcam (the mics are in the top bezel), ~50 cm away"
 STEPS = [
-    Step("BACKGROUND", 20, None, "-", "Stay silent. Don't touch the laptop or the table."),
+    Step("BACKGROUND", 20, None, "-", "Stay silent. Don't touch the laptop or the table. Ask people nearby to pause."),
     Step("FOOTSTEPS", 15, "FOOTSTEPS", "LEFT",
-         "Walk on the LEFT of the laptop (~1 m), or play a footsteps clip from the phone held on the LEFT."),
+         f"Play a footsteps clip on the LEFT ({PHONE}), or stamp-walk hard on the LEFT."),
     Step("IMPACT", 15, "IMPACT", "RIGHT",
-         "On the RIGHT: thud the table / drop a book every ~2 s."),
+         "On the RIGHT, ~50 cm away: thud the table with a fist / drop a book every ~2 s. Make it LOUD."),
     Step("DISTRESS", 15, "DISTRESS", "RIGHT",
-         "Play a scream clip from the phone held ~1 m to the RIGHT."),
+         f"Play a scream clip on the RIGHT ({PHONE})."),
     Step("ALARM", 15, "ALARM", "CENTRE",
-         "Play a smoke/fire-alarm clip from the phone ~1 m straight in FRONT."),
+         f"Play a smoke/fire-alarm clip straight in FRONT ({PHONE})."),
     Step("GLASS", 15, "GLASS", "LEFT",
-         "Play a glass-breaking clip from the phone ~1 m to the LEFT."),
+         f"Play a glass-breaking clip on the LEFT ({PHONE})."),
     Step("KNOCK", 10, "IMPACT", "RIGHT",
-         "Knock on the table / a door on the RIGHT, a few knocks at a time."),
+         "Knock firmly on the table on the RIGHT, ~50 cm away, a few knocks at a time."),
     Step("CHATTER", 20, None, "CENTRE",
          "Talk normally in FRONT of the laptop (or play people chatting). Should trigger nothing."),
 ]
+# A step's sound should be clearly louder than the room; below this it is reported TOO QUIET.
+LOUD_ENOUGH_DB = 10.0
 
 
 @dataclass
@@ -83,6 +86,42 @@ class Hop:
     lag: float
     peak: float
     ms: float
+    attempt: int = 1
+
+
+def latest_attempts(hops: list[Hop]) -> list[Hop]:
+    """Counted hops, keeping only the most recent attempt of each guided step (r = redo)."""
+    last: dict[str, int] = {}
+    for h in hops:
+        last[h.step] = max(last.get(h.step, 0), h.attempt)
+    return [h for h in hops if h.counted and h.attempt == last[h.step]]
+
+
+def loudest_quarter_db(sh: list[Hop]) -> float:
+    lv = np.sort([max(h.rms) for h in sh])[::-1]
+    return float(np.median(lv[: max(1, len(lv) // 4)]))
+
+
+def step_verdict(sh: list[Hop], step: "Step", bg_db: float | None, labels: list[str],
+                 cmap: CategoryMap, thr: float) -> tuple[bool, str]:
+    """(ok, one-line verdict) for a finished guided step."""
+    if not sh:
+        return False, "no audio"
+    sc = {c: max(cmap.scores(h.probs)[c] for h in sh) for c in cmap.names}
+    above = loudest_quarter_db(sh) - bg_db if bg_db is not None else None
+    lvl = f"{above:+.1f} dB vs background" if above is not None else f"{loudest_quarter_db(sh):.1f} dBFS"
+    smx = np.stack([h.probs for h in sh]).max(axis=0)
+    top = ", ".join(f"{labels[i]} {smx[i]:.2f}" for i in np.argsort(smx)[::-1][:3])
+    if step.expect is None:
+        trig = [f"{c} {p:.2f}" for c, p in sc.items() if p >= thr]
+        return (not trig), ("OK - nothing triggered" if not trig else "TRIGGERED " + ", ".join(trig)) + f"  ({lvl})"
+    p = sc[step.expect]
+    if p >= thr:
+        return True, f"HEARD - {step.expect} {p:.2f}  ({lvl})"
+    if above is not None and above < LOUD_ENOUGH_DB:
+        return False, (f"TOO QUIET - {step.expect} only {p:.2f}, sound {lvl} (want >= +{LOUD_ENOUGH_DB:.0f} dB): "
+                       f"louder / closer.  Heard: {top}")
+    return False, f"LOUD BUT NOT RECOGNISED - {step.expect} {p:.2f} ({lvl}).  Heard: {top}"
 
 
 # ------------------------------------------------------------------ formatting
@@ -119,7 +158,7 @@ def cat_line(scores: dict[str, float], thr: float, st: Style) -> str:
 # ------------------------------------------------------------------ summary
 def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float, guided: bool) -> list[str]:
     out: list[str] = []
-    counted = [h for h in hops if h.counted]
+    counted = latest_attempts(hops)
     if not counted:
         return ["No hops recorded."]
     P = np.stack([h.probs for h in counted])
@@ -152,7 +191,10 @@ def summarize(hops: list[Hop], labels: list[str], cmap: CategoryMap, thr: float,
             smx = sp.max(axis=0)
             sc = {c: np.array([cmap.scores(h.probs)[c] for h in sh]) for c in cmap.names}
             exp = f"expect {step.expect}" if step.expect else "expect nothing"
-            out.append(f"\n[{step.name}] {len(sh)} hops, {exp}, sound at {step.where}")
+            att = f", attempt {sh[0].attempt}" if sh[0].attempt > 1 else ""
+            out.append(f"\n[{step.name}] {len(sh)} hops, {exp}, sound at {step.where}{att}")
+            if step.name != "BACKGROUND":
+                out.append("  verdict: " + step_verdict(sh, step, bg_db, labels, cmap, thr)[1])
             if step.expect:
                 v = sc[step.expect]
                 verdict = "OK" if (v >= thr).any() else "MISSED"
@@ -213,6 +255,8 @@ def main() -> None:
     ap.add_argument("--step-seconds", type=float, help="override every guided step's duration (testing)")
     ap.add_argument("--seconds", type=float, help="free run: stop automatically after this many seconds")
     ap.add_argument("--quiet", action="store_true", help="don't print every hop")
+    ap.add_argument("--save-wav", action="store_true",
+                    help="ALSO save the raw 48 kHz stereo audio of this run (opt-in; for offline re-tuning)")
     ap.add_argument("--no-color", action="store_true")
     args = ap.parse_args()
     st = Style(not args.no_color and sys.stdout.isatty())
@@ -233,32 +277,62 @@ def main() -> None:
     print(f"host API : {src.dev.host_api}   rate: {src.rate} Hz   channels: {src.channels}")
     print(f"model    : CNN14 on {tagger.device} (warm-up {warm_ms:.0f} ms/window)   "
           f"window {args.window:.2f} s   hop {args.hop:.2f} s   gain {args.gain:+.1f} dB   thr {args.threshold:.2f}")
-    print("keys     : n = next step, q = finish   (Ctrl+C also finishes)")
+    print("keys     : n = skip step, r = redo the last finished step (or restart the current one), q = finish")
     print("=" * 78)
 
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = None
     writer = log_f = None
     if args.log or args.guided:
         config.RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_path = config.RECORDINGS_DIR / f"topk_{stamp}.csv"
         log_f = open(log_path, "w", newline="", encoding="utf-8")
         writer = csv.writer(log_f)
         writer.writerow(["t", "step", "counted", "rms_l", "rms_r", "corr", "lag", "peak", "ms",
-                         "gain_db", "window_s"] + labels)
+                         "gain_db", "window_s", "attempt", "model_device"] + labels)
         print(f"logging  : {log_path}")
+    wav = None
+    if args.save_wav:
+        import soundfile as sf
+        config.RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
+        wav_path = config.RECORDINGS_DIR / f"topk_{stamp}.wav"
+        wav = sf.SoundFile(wav_path, "w", samplerate=src.rate, channels=src.channels, subtype="PCM_24")
+        print(st(f"RAW AUDIO: saving to {wav_path} (you asked for --save-wav)", "93"))
+    else:
+        print("raw audio: not saved (add --save-wav to keep it)")
 
     steps = [Step(s.name, args.step_seconds or s.seconds, s.expect, s.where, s.how) for s in STEPS]
     step_i, phase, phase_end = 0, "READY", None   # phases: READY (not counted) -> RUN
+    attempts = {s.name: 1 for s in steps}
+    finished_last: int | None = None              # index of the most recently finished step (for r)
     hops: list[Hop] = []
     t_now = 0.0
 
     def announce(i: int) -> None:
         s = steps[i]
+        again = f", attempt {attempts[s.name]}" if attempts[s.name] > 1 else ""
         print()
-        print(st(f">>> STEP {i + 1}/{len(steps)}: {s.name} ({s.seconds:.0f} s, sound at {s.where})", "1;96"))
+        print(st(f">>> STEP {i + 1}/{len(steps)}: {s.name} ({s.seconds:.0f} s, sound at {s.where}{again})", "1;96"))
         print(st(f"    {s.how}", "96"))
-        print(st(f"    get ready... starts in {GET_READY_S:.0f} s (n = skip this step)", "2"))
+        print(st(f"    get ready... starts in {GET_READY_S:.0f} s (n = skip, r = redo previous step)", "2"))
+
+    def background_db() -> float | None:
+        bg = [h for h in latest_attempts(hops) if h.step == "BACKGROUND"]
+        return float(np.median([max(h.rms) for h in bg])) if bg else None
+
+    def report_step(i: int) -> None:
+        s = steps[i]
+        sh = [h for h in hops if h.counted and h.step == s.name and h.attempt == attempts[s.name]]
+        if s.name == "BACKGROUND":
+            bg = background_db()
+            if bg is not None:
+                print(st(f"    BACKGROUND level {bg:.1f} dBFS. Test sounds should reach about "
+                         f"{bg + LOUD_ENOUGH_DB:.0f} dBFS or louder on the meter.", "1;97"))
+            return
+        ok, text = step_verdict(sh, s, background_db(), labels, cmap, args.threshold)
+        print(st(f"    [{s.name}] {text}", "1;92" if ok else "1;91"))
+        if not ok:
+            print(st("    -> press r during the countdown to redo it", "91"))
 
     if args.guided:
         announce(0)
@@ -279,6 +353,14 @@ def main() -> None:
                     break
                 announce(step_i)
                 phase, phase_end = "READY", t_now + GET_READY_S
+            if key == "r" and args.guided:
+                if phase == "READY" and finished_last is not None:
+                    step_i = finished_last          # redo the step that just finished
+                    finished_last = None
+                print(f"\n[r] redoing {steps[step_i].name}")
+                attempts[steps[step_i].name] += 1
+                announce(step_i)
+                phase, phase_end = "READY", t_now + GET_READY_S
             if args.seconds and not args.guided and t_now >= args.seconds:
                 break
 
@@ -286,14 +368,19 @@ def main() -> None:
             if item is None:
                 continue
             block, cap_t = item
+            if wav is not None:
+                wav.write(block)
             for w in rw.push(block, cap_t):
                 t_now = w.t_end
                 # guided phase transitions are driven by stream time (sample count)
                 if args.guided:
                     if phase == "READY" and t_now >= phase_end:
                         phase, phase_end = "RUN", t_now + steps[step_i].seconds
+                        finished_last = None
                         print(st(f"    >>> GO: {steps[step_i].name} now", "1;93"))
                     elif phase == "RUN" and t_now >= phase_end:
+                        report_step(step_i)
+                        finished_last = step_i
                         step_i += 1
                         if step_i >= len(steps):
                             raise GuidedDone
@@ -312,12 +399,14 @@ def main() -> None:
                 rms = (db(newest[:, 0]), db(newest[:, 1]))
                 corr = channel_corr(newest[:, 0], newest[:, 1])
                 lag, peak = gcc_phat(newest[:, 0], newest[:, 1], src.rate, max_lag=DIAG_MAX_LAG)
-                hop = Hop(t_now, step_name, counted, probs, rms, corr, lag, peak, tagger.last_ms)
+                attempt = attempts[step_name] if args.guided else 1
+                hop = Hop(t_now, step_name, counted, probs, rms, corr, lag, peak, tagger.last_ms, attempt)
                 hops.append(hop)
                 if writer:
                     writer.writerow([f"{t_now:.2f}", step_name, int(counted), f"{rms[0]:.1f}", f"{rms[1]:.1f}",
                                      f"{corr:.4f}", f"{lag:.3f}", f"{peak:.3f}", f"{tagger.last_ms:.1f}",
-                                     args.gain, args.window] + [f"{p:.4f}" for p in probs])
+                                     args.gain, args.window, attempt, tagger.device]
+                                    + [f"{p:.4f}" for p in probs])
                     log_f.flush()
                 if counted and not args.quiet:
                     scores = cmap.scores(probs)
@@ -336,6 +425,9 @@ def main() -> None:
         src.stop()
         if log_f:
             log_f.close()
+        if wav is not None:
+            wav.close()
+            print(f"raw audio saved: {wav.name}")
 
     lines = summarize(hops, labels, cmap, args.threshold, args.guided)
     if src.dropped_blocks or src.overflows:

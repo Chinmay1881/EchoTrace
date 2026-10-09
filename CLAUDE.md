@@ -6,8 +6,11 @@ Work phase by phase. At the end of each phase: commit + push to origin/main, giv
 
 ## Progress
 - [x] Phase 0 — Setup
-- [~] Phase 1 — Hearing (PANNs live): code + tests done and pushed; WAITING for the user's guided run
-      (`live_topk.py --guided`), then tune CATEGORIES / thresholds / TAGGER_GAIN_DB from recordings/topk_*.csv
+- [~] Phase 1 — Hearing (PANNs live): code + tests done and pushed. Guided run #1 (topk_20261009_111505) was
+      UNUSABLE for tuning: test sounds never rose above the room (max level -34.8 dBFS was in BACKGROUND; IMPACT
+      loudest -39 dBFS; no alarm-like label at all; Speech ~0.9 every step; 86 ms/hop suggests CPU). Tunables left
+      unchanged on purpose. Added per-step verdicts + r = redo, --save-wav, attempt/model_device CSV columns.
+      WAITING for guided run #2 (with --save-wav), then tune CATEGORIES / thresholds / TAGGER_GAIN_DB.
 
 ## Findings so far
 - WDM-KS "Microphone Array 2" index moves (17 -> 11 within an hour): always resolve by name.
