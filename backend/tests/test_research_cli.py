@@ -15,7 +15,8 @@ from echotrace import config
 from echotrace.eval.dataset import sha256
 
 
-def test_freeze_replay_drift_and_preserve_outputs(tmp_path, monkeypatch):
+@pytest.mark.parametrize('mode', ['stereo', 'mono', 'dual-mono'])
+def test_freeze_replay_drift_and_preserve_outputs(tmp_path, monkeypatch, mode):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / 'scripts'))
     cli = importlib.import_module('research_eval')
     import echotrace.pipeline as pipeline
@@ -37,7 +38,12 @@ def test_freeze_replay_drift_and_preserve_outputs(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, 'MANIFEST', test / 'manifest.json')
     monkeypatch.setattr(cli, 'environment', lambda: {'unit_fixture': True})
     wav = test / 'fixture.wav'
-    sf.write(wav, np.random.default_rng(0).normal(0, .01, (48000 * 10, 2)), 48000, subtype='PCM_16')
+    audio = np.random.default_rng(0).normal(0, .01, (48000 * 10, 2))
+    if mode == 'mono':
+        audio = audio[:, 0]
+    elif mode == 'dual-mono':
+        audio[:, 1] = audio[:, 0]
+    sf.write(wav, audio, 48000, subtype='PCM_16')
     record = {'recording_id': 'unit-fixture', 'wav': wav.name, 'sha256': sha256(wav),
               'source': 'unit fixture only', 'date': '2026-11-08', 'device': 'unit fixture',
               'environment': 'unit fixture', 'annotator': 'test code', 'duration_s': 10.0,
@@ -45,6 +51,10 @@ def test_freeze_replay_drift_and_preserve_outputs(tmp_path, monkeypatch):
               'ground_truth_risk': 'GREEN', 'incidents': [],
               'events': [{'id': str(n), 'start_s': a, 'end_s': b, 'category': c, 'zone': 'LEFT'}
                          for n, (a, b, c) in enumerate([(0, 3, 'GLASS'), (5, 8, 'ALARM')])]}
+    if mode != 'stereo':
+        record['evaluation_mode'] = 'non-spatial'
+        for event in record['events']:
+            event['zone'] = None
     cli.MANIFEST.write_text(json.dumps({'schema_version': 1, 'split': 'independent-test',
                                        'recordings': [record]}))
 
@@ -84,6 +94,10 @@ def test_freeze_replay_drift_and_preserve_outputs(tmp_path, monkeypatch):
     assert metrics['A_per_event']['fp'] > 0
     assert metrics['D_EchoTrace']['fp'] == 0
     assert len(metrics) == 4
+    if mode != 'stereo':
+        row = result['per_recording'][0]
+        assert row['directional_scoring']['denominator'] == 0
+        assert all(e['zone'] is None and e['angle_deg'] is None for e in row['events'])
     with pytest.raises(FileExistsError):
         invoke('run', 'first')
     with pytest.raises(FileExistsError):

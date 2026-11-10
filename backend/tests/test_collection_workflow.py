@@ -66,7 +66,7 @@ def test_reject_protocol_annotation_errors(collection, change):
 
 @pytest.mark.parametrize('rate,channels,subtype,seconds', [(44100, 2, 'PCM_24', 30),
                                                           (48000, 1, 'PCM_24', 30),
-                                                          (48000, 2, 'PCM_16', 30),
+                                                          (48000, 2, 'FLOAT', 30),
                                                           (48000, 2, 'PCM_24', 1)])
 def test_reject_wrong_formats(tmp_path, rate, channels, subtype, seconds):
     wav = tmp_path / 'fixture.wav'
@@ -131,3 +131,81 @@ def test_truncated_pcm_is_rejected(collection):
     wav.write_bytes(raw[:-48000 * 6])  # still 29 seconds if decoder ignores stale header
     with pytest.raises(ValueError, match='truncated'):
         check_wav(wav)
+
+
+@pytest.mark.parametrize('subtype', ['PCM_16', 'PCM_24'])
+@pytest.mark.parametrize('modality', ['mono', 'dual-mono', 'stereo-candidate'])
+def test_non_spatial_formats_preserve_source(tmp_path, subtype, modality):
+    wav = tmp_path / 'pilot_fixture.wav'
+    mono = np.random.default_rng(12).uniform(-.01, .01, 48000 * 25)
+    audio = mono if modality == 'mono' else np.column_stack(
+        [mono, mono if modality == 'dual-mono' else mono * .9 + .00001])
+    sf.write(wav, audio, 48000, subtype=subtype)
+    before = wav.read_bytes()
+    result = check_wav(wav, 'non-spatial')
+    assert result['modality'] == modality
+    assert result['subtype'] == subtype
+    assert result['spatial_eligible'] is False
+    assert wav.read_bytes() == before
+    if modality != 'stereo-candidate':
+        with pytest.raises(ValueError, match='mono'):
+            check_wav(wav, 'localization')
+
+
+@pytest.mark.parametrize('subtype', ['PCM_16', 'PCM_24'])
+def test_independent_stereo_formats(collection, subtype):
+    wav, _, write, dev = collection
+    audio, rate = sf.read(wav)
+    sf.write(wav, audio, rate, subtype=subtype)
+    # Hash is provenance, not a request for automatic conversion during admission.
+    _, record, _, _ = collection
+    record['sha256'] = sha256(wav)
+    result = validate_collection(write(), dev, CHECKLIST)
+    assert result['files'][0]['modality'] == 'stereo-candidate'
+    assert result['files'][0]['spatial_signal_candidate'] is True
+
+
+def test_non_spatial_manifest_zones_and_pilot_exclusion(collection):
+    wav, record, write, dev = collection
+    audio, rate = sf.read(wav)
+    sf.write(wav, audio[:, 0], rate, subtype='PCM_16')
+    record.update(sha256=sha256(wav), evaluation_mode='non-spatial')
+    record['events'][0]['zone'] = None
+    assert validate_collection(write(), dev, CHECKLIST)['files'][0]['modality'] == 'mono'
+    record['events'][0]['zone'] = 'LEFT'
+    with pytest.raises(ValueError, match='event label'):
+        validate_collection(write(), dev, CHECKLIST)
+    record['events'][0]['zone'] = None
+    record['dataset_role'] = 'pilot'
+    with pytest.raises(ValueError, match='pilot/development'):
+        validate_collection(write(), dev, CHECKLIST)
+
+
+@pytest.mark.parametrize('name,subtype', [('pilot_background_01.wav', 'PCM_16'),
+                                        ('pilot_background_01_24bit.wav', 'PCM_24')])
+def test_local_genuine_pilot_read_only(name, subtype):
+    # Optional local assets; portable fixture coverage above always runs.
+    wav = Path(__file__).resolve().parents[2] / name
+    if not wav.exists():
+        pytest.skip('local genuine pilot is not distributed with source')
+    before = sha256(wav)
+    result = check_wav(wav, 'non-spatial')
+    assert result['subtype'] == subtype and result['modality'] == 'dual-mono'
+    assert result['spatial_eligible'] is False
+    with pytest.raises(ValueError, match='dual-mono'):
+        check_wav(wav)
+    assert sha256(wav) == before
+
+
+def test_lossless_conversion_cannot_bypass_leakage(collection):
+    from echotrace.eval.dataset import load_manifest
+    wav, record, write, dev = collection
+    mono = np.random.default_rng(3).uniform(-.01, .01, 48000 * 30)
+    source = dev / 'previous-pilot.wav'
+    sf.write(source, mono, 48000, subtype='PCM_16')
+    samples, rate = sf.read(source)
+    sf.write(wav, np.column_stack([samples, samples]), rate, subtype='PCM_24')
+    record.update(sha256=sha256(wav), evaluation_mode='non-spatial')
+    record['events'][0]['zone'] = None
+    with pytest.raises(ValueError, match='duplicate audio'):
+        load_manifest(write(), dev)

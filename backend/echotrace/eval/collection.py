@@ -3,21 +3,24 @@ import csv
 import wave
 from pathlib import Path
 
-from echotrace.eval.dataset import load_manifest, require
+from echotrace.eval.dataset import load_manifest, require, sha256
 
 RUBRIC = 'echotrace-contextual-proxy-v1'
 
 
-def check_wav(path):
+def check_wav(path, evaluation_mode="localization", *, collection_duration=True):
     """Full decode detects truncation; format requirements apply before inference."""
     import numpy as np
     import soundfile as sf
     from echotrace.audio.devices import channel_report
 
+    require(evaluation_mode in {'localization', 'non-spatial'}, 'invalid evaluation_mode')
     info = sf.info(path)
-    require(info.format in {'WAV', 'WAVEX'} and info.subtype == 'PCM_24', 'expected PCM_24 WAV')
-    require(info.samplerate == 48000 and info.channels == 2, 'expected 48000 Hz, two channels')
-    require(25 <= info.duration <= 35, 'expected 25–35 seconds')
+    require(info.format in {'WAV', 'WAVEX'} and info.subtype in {'PCM_16', 'PCM_24'}, 'expected PCM_16 or PCM_24 WAV')
+    require(info.samplerate == 48000 and info.channels in {1, 2}, 'expected 48000 Hz, one or two channels')
+    require(info.frames > 0, 'empty audio')
+    if collection_duration:
+        require(25 <= info.duration <= 35, 'expected 25–35 seconds')
     audio, _ = sf.read(path, dtype='float32', always_2d=True)
     require(len(audio) == info.frames, 'truncated audio')
     with wave.open(str(path), 'rb') as stream:
@@ -25,13 +28,26 @@ def check_wav(path):
     require(bool(np.isfinite(audio).all()), 'nonfinite audio')
     peak = float(np.abs(audio).max())
     require(peak < .999, 'clipping/full-scale samples; review take before admission')
-    channels = channel_report(audio)
-    # Quiet clips can be silent; hardware qualification comes from separate practice takes.
-    require(channels.silent or not channels.identical, 'duplicated/processed mono channels')
-    return {'wav': str(path), 'sample_rate': info.samplerate, 'channels': info.channels,
+    exact_duplicate = info.channels == 2 and bool(np.array_equal(audio[:, 0], audio[:, 1]))
+    channels = channel_report(audio) if info.channels == 2 else None
+    silent = bool(np.max(np.sqrt(np.mean(audio.astype('float64') ** 2, axis=0))) < 1e-6)
+    modality = 'mono' if info.channels == 1 else 'dual-mono' if exact_duplicate else 'stereo-candidate'
+    # Correlation is a diagnostic, never proof of exact duplication or physical stereo.
+    candidate = modality == 'stereo-candidate' and not silent
+    if evaluation_mode == 'localization':
+        require(info.channels == 2, 'localization requires two channels; mono is non-spatial only')
+        require(not exact_duplicate, 'dual-mono is non-spatial only')
+        require(silent or not channels.identical, 'processed/near-identical channels require spatial review')
+    return {'wav': str(path), 'sha256': sha256(path),
+            'sample_rate': info.samplerate, 'channels': info.channels,
             'subtype': info.subtype, 'duration_s': info.duration, 'peak': peak,
-            'silent': bool(channels.silent), 'stereo_evidence': 'unassessable on silence' if channels.silent
-            else 'distinct channels; physical microphone geometry still requires human verification'}
+            'silent': silent, 'modality': modality, 'exact_channel_duplication': exact_duplicate,
+            'channel_correlation': channels.corr if channels else None,
+            'evaluation_mode': evaluation_mode,
+            'spatial_signal_candidate': candidate and not channels.identical if channels else False,
+            'spatial_eligible': False,  # file QC cannot establish physical geometry or human review
+            'directional_scoring': 'not implemented; non-spatial recordings must never enter its denominator',
+            'stereo_evidence': 'unverified; distinct channels do not establish physical microphone geometry'}
 
 
 def validate_collection(manifest, development, checklist):
@@ -80,7 +96,7 @@ def validate_collection(manifest, development, checklist):
             causal = sorted((events[i] for i in linked), key=lambda e: e['start_s'])
             require([e['category'] for e in causal] == plan['intended_sequence'].split('>'),
                     f'{rid}: causal categories differ from the staged script; review before admission')
-        reports.append(check_wav(Path(manifest).parent / record['wav']))
+        reports.append(check_wav(Path(manifest).parent / record['wav'], record.get('evaluation_mode', 'localization')))
     return {'status': 'format and manifest valid; human review still required',
             'recordings': len(reports), 'planned': len(planned),
             'missing_clip_ids': sorted(set(planned) - {r['recording_id'] for r in data['recordings']}),

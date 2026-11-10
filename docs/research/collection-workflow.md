@@ -108,3 +108,69 @@ Interrupted transfer/copy remains inadmissible and must be investigated, not sil
 Remaining blockers: accessible qualified local stereo hardware, human collection of genuinely new takes, complete blind annotations/provenance, and unresolved historical evidence discrepancies. The rubric and schedule are now finalized for this collection; do not choose between conflicting label definitions after observing predictions. Stop after preparation until genuine data and its provenance exist.
 
 Additional collection-lock verification: future evaluation snapshots now include collection-protocol.md, collection-checklist.csv and research_validate.py. The existing comparison/CLI lock regressions were executed again and passed **9 tests** (verification/collection-lock-regression.txt). No model inference was performed: scripted tagger/software fixtures only. A collection-plan-snapshot.json records preparation-time hashes; it is not an evaluated-dataset protocol lock.
+
+## Research format and modality amendment — 10 November 2026
+
+Research admission accepts original signed PCM_16 or PCM_24 WAV/WAVEX at 48,000 Hz,
+with one or two channels. The 36-take collection still requires 25–35 seconds,
+complete provenance, zero documented capture losses, blind annotations, prescribed
+IDs/scenarios and independent sources. No automatic conversion occurs. PCM_24
+storage does not establish 24-bit acquisition precision. Preserve the original
+file, hash, encoding, channels and capture/export history; retain any pre-existing
+conversion as a derivative, never a second independent take.
+
+File QC defaults to `localization`. For a pilot workflow check use:
+
+```sh
+backend/.venv/bin/python backend/scripts/research_validate.py --wav pilot_background_01.wav --evaluation-mode non-spatial --dataset-role pilot
+backend/.venv/bin/python backend/scripts/research_validate.py --wav pilot_background_01_24bit.wav --evaluation-mode non-spatial --dataset-role pilot
+```
+
+Both actual files passed QC (exit 0): 26.17 s, 48 kHz, two exactly identical
+channels, respectively PCM_16 and PCM_24, peak .08306884765625. Both report
+`modality: dual-mono`, `spatial_eligible: false`, `independent_admission: false`,
+and no inference. Default localization QC rejects each (exit 2). This verifies
+file/workflow compatibility only; it supplies no independent evaluation result.
+Audacity/Windows acquisition is operator-reported provenance, not inferred from
+samples. Keep these pilots outside recordings/test and outside the 36-take count.
+
+Independent manifests remain schema_version 1, split independent-test. A recording
+may explicitly declare `evaluation_mode: non-spatial`; omission defaults to
+localization. For non-spatial records, event `zone` must be null or omitted:
+never invent CENTRE or use predictions as ground truth. All category, timestamp,
+incident, provenance, independence, path and hash checks still apply. Optional
+`dataset_role`, if present in an independent manifest, must be independent-test;
+pilot/development roles are rejected. File-only --dataset-role is a descriptive
+label, never an independence certificate. Manifest mode is stored in the manifest
+and therefore covered by the existing freeze hash and drift checks.
+
+Non-spatial mode accepts mono, exact dual-mono and distinct two-channel audio for
+classification/temporal-correlation work. Reports distinguish mono, dual-mono,
+and stereo-candidate, with exact duplication separate from correlation diagnostics.
+Localization requires two channels, rejects exact dual-mono (including silence),
+and rejects non-silent near-identical channels under the existing diagnostic.
+A distinct silent take alone cannot qualify hardware. No signal-only check proves
+genuine physical stereo: geometry/routing/practice evidence and human review are
+still required. File QC always leaves spatial_eligible false; spatial_signal_candidate
+only describes signal evidence. Do not claim independent microphones from channel
+count, low correlation, or injected differences.
+
+The research comparison exports null zone/angle/confidence for non-spatial records.
+Directional scoring remains unimplemented and explicitly has denominator zero;
+no mono/dual-mono sample contributes to directional accuracy. Incident metrics use
+the same category/time detections and unchanged four alert policies. Production
+inference, preprocessing, thresholds, weights and correlation are unchanged.
+Research output records source encoding/channels/hash and eligibility diagnostics.
+
+Leakage checks retain historical byte/PCM identities and additionally compare
+canonical decoded PCM identities across lossless 16/24-bit storage and exact
+mono/channel-duplication variants. This does not detect re-recorded playback,
+resampling or approximate excerpts; source review remains mandatory. Existing
+locks/results are never rewritten. Source/schema changes invalidate prior locks;
+never re-freeze in response to held-out predictions.
+
+For the planned localization study, continue to acquire verified physical stereo;
+non-spatial takes cannot satisfy its directional evidence requirement. All 36
+held-out takes and blind timed/provenance annotation remain pending. Capture
+integrity diagnostics, actual hardware qualification and independent source
+identities are still required; pilot QC does not waive these gates.
