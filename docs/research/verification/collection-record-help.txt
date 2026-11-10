@@ -1,0 +1,18 @@
+usage: record_clip.py [-h] [--seconds SECONDS] [--name NAME] [--out OUT]
+                      [--device DEVICE] [--countdown COUNTDOWN]
+
+Record a test clip from the WDM-KS mic: 48 kHz, stereo, 24-bit WAV.
+
+Raw audio is only ever saved by this script, when you explicitly run it.
+
+  python scripts/record_clip.py --seconds 20 --name demo_sequence
+  python scripts/record_clip.py --seconds 10 --out C:\path\clip.wav --countdown 3
+
+options:
+  -h, --help            show this help message and exit
+  --seconds SECONDS
+  --name NAME           file name stem (saved in recordings/)
+  --out OUT             explicit output path (overrides --name)
+  --device DEVICE       input device name substring
+  --countdown COUNTDOWN
+                        seconds of countdown before recording

@@ -1,0 +1,30 @@
+{
+  "path": "recordings/eval/glass_impact_01.wav",
+  "pcm_sha256": "6d268409ffcf34a141d503920a4e6eb4d6047d228ebaa26f1c3d568e7d52b0ba",
+  "duration_s": 25.0,
+  "sample_rate": 48000,
+  "channels": 2,
+  "sha256": "ebd3d46d55bf065b4f4a9e303264ad2f6863e8835418f9129651c391f0fdb9a1",
+  "finite": true,
+  "peak": 0.877685546875,
+  "clipped_sample_fraction": 0.0,
+  "channels_identical": false,
+  "silent": false,
+  "channel_correlation": 0.33919939933468013,
+  "annotation_scaffold_INCOMPLETE": {
+    "recording_id": "glass_impact_01",
+    "wav": "glass_impact_01.wav",
+    "sha256": "ebd3d46d55bf065b4f4a9e303264ad2f6863e8835418f9129651c391f0fdb9a1",
+    "duration_s": 25.0,
+    "source": null,
+    "date": null,
+    "device": null,
+    "environment": null,
+    "annotator": null,
+    "used_for_tuning": false,
+    "category_labels": [],
+    "ground_truth_risk": null,
+    "events": [],
+    "incidents": []
+  }
+}

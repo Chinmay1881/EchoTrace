@@ -1,0 +1,27 @@
+{
+  "portaudio": [
+    1246720,
+    "PortAudio V19.6.0-devel, revision 396fe4b6699ae929d3a685b3ef8a7e97396139a4"
+  ],
+  "host_apis": [
+    {
+      "name": "ALSA",
+      "devices": [],
+      "default_input_device": -1,
+      "default_output_device": -1
+    },
+    {
+      "name": "OSS",
+      "devices": [],
+      "default_input_device": -1,
+      "default_output_device": -1
+    }
+  ],
+  "default_device": [
+    -1,
+    -1
+  ],
+  "input_devices": [],
+  "physical_stereo": "unverified; settings support does not establish separate microphones",
+  "capture_performed": false
+}

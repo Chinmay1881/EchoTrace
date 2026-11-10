@@ -1,0 +1,15 @@
+test_baseline_emission_clock_and_cooldowns (test_research_infrastructure.InfrastructureTests.test_baseline_emission_clock_and_cooldowns) ... ok
+test_benign_multi_event (test_research_infrastructure.InfrastructureTests.test_benign_multi_event) ... ok
+test_cli_pending_and_freeze_rejection (test_research_infrastructure.InfrastructureTests.test_cli_pending_and_freeze_rejection) ... ok
+test_duplicate_development (test_research_infrastructure.InfrastructureTests.test_duplicate_development) ... ok
+test_incident_assignment_duplicates_and_misses (test_research_infrastructure.InfrastructureTests.test_incident_assignment_duplicates_and_misses) ... ok
+test_missing_and_malformed (test_research_infrastructure.InfrastructureTests.test_missing_and_malformed) ... ok
+test_missing_annotations (test_research_infrastructure.InfrastructureTests.test_missing_annotations) ... ok
+test_overlapping_incidents_earliest_deadline (test_research_infrastructure.InfrastructureTests.test_overlapping_incidents_earliest_deadline) ... ok
+test_pcm_duplicates_ignore_container_metadata (test_research_infrastructure.InfrastructureTests.test_pcm_duplicates_ignore_container_metadata) ... ok
+test_valid_benign (test_research_infrastructure.InfrastructureTests.test_valid_benign) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.504s
+
+OK

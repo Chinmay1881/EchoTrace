@@ -1,0 +1,212 @@
+  [high, direction v2] background_01 ...
+  [high, direction v2] breakin_01 ...
+  [high, direction v2] breakin_02 ...
+  [high, direction v2] breakin_03 ...
+  [high, direction v2] breakin_04 ...
+  [high, direction v2] chatter_01 ...
+  [high, direction v2] glass_impact_01 ...
+  [high, direction v2] lone_alarm_01 ...
+  [high, direction v2] lone_glass_01 ...
+  [high, direction v2] lone_thud_01 ...
+WARNING: The directory '/home/codespace/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.
+{
+  "sequence_accuracy": {
+    "archived": 0.9,
+    "reproduced": 0.9,
+    "equal": true
+  },
+  "totals": {
+    "archived": {
+      "echotrace_alerts": 7,
+      "baseline_alerts": 56,
+      "events_detected": 56
+    },
+    "reproduced": {
+      "echotrace_alerts": 7,
+      "baseline_alerts": 56,
+      "events_detected": 58
+    },
+    "equal": false
+  },
+  "lcr": {
+    "archived": {
+      "accuracy": 0.821,
+      "events": 56,
+      "correct": 46,
+      "unknown": 1,
+      "low_correct": 6,
+      "low_wrong": 7,
+      "high_correct": 40,
+      "high_wrong": 2
+    },
+    "reproduced": {
+      "accuracy": 0.821,
+      "events": 56,
+      "correct": 46,
+      "unknown": 0,
+      "low_correct": 6,
+      "low_wrong": 8,
+      "high_correct": 40,
+      "high_wrong": 2
+    },
+    "equal": false
+  },
+  "detection": {
+    "archived": {
+      "GLASS": {
+        "labelled": 6,
+        "detected": 5
+      },
+      "IMPACT": {
+        "labelled": 6,
+        "detected": 6
+      },
+      "ALARM": {
+        "labelled": 5,
+        "detected": 4
+      }
+    },
+    "reproduced": {
+      "GLASS": {
+        "labelled": 6,
+        "detected": 5
+      },
+      "IMPACT": {
+        "labelled": 6,
+        "detected": 6
+      },
+      "ALARM": {
+        "labelled": 5,
+        "detected": 4
+      }
+    },
+    "equal": true
+  },
+  "per_clip": {
+    "archived": [
+      {
+        "clip": "background_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "breakin_01",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "breakin_02",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "NONE/GREEN",
+        "ok": false
+      },
+      {
+        "clip": "breakin_03",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "breakin_04",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "chatter_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "glass_impact_01",
+        "expected": "GLASS_IMPACT/AMBER",
+        "got": "GLASS_IMPACT/AMBER",
+        "ok": true
+      },
+      {
+        "clip": "lone_alarm_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "lone_glass_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "lone_thud_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      }
+    ],
+    "reproduced": [
+      {
+        "clip": "background_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "breakin_01",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "breakin_02",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "NONE/GREEN",
+        "ok": false
+      },
+      {
+        "clip": "breakin_03",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "breakin_04",
+        "expected": "BREAKIN_ALARM/RED",
+        "got": "BREAKIN_ALARM/RED",
+        "ok": true
+      },
+      {
+        "clip": "chatter_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "glass_impact_01",
+        "expected": "GLASS_IMPACT/AMBER",
+        "got": "GLASS_IMPACT/AMBER",
+        "ok": true
+      },
+      {
+        "clip": "lone_alarm_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "lone_glass_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      },
+      {
+        "clip": "lone_thud_01",
+        "expected": "NONE/GREEN",
+        "got": "NONE/GREEN",
+        "ok": true
+      }
+    ],
+    "equal": true
+  }
+}

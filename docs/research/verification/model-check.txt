@@ -1,0 +1,4 @@
+PANNs data dir: /home/codespace/panns_data
+  weights Cnn14_mAP=0.431.pth: ok (327,428,481 bytes)
+  labels  class_labels_indices.csv: ok (14,675 bytes, 527 classes)
+ALL OK

@@ -1,0 +1,7 @@
+Input devices (host API preference: Windows WDM-KS > Windows WASAPI > Windows DirectSound > MME)
+  ok = accepts 48000 Hz x 2 ch;  >> = EchoTrace default pick
+
+
+WARNING: no device matching ['Microphone Array 2', 'Microphone Array 1'] on Windows WDM-KS.
+Pass --device <name substring> to the other scripts.
+Tip: WDM-KS is exclusive. Close Teams/Zoom/browser tabs using the mic if a probe fails.

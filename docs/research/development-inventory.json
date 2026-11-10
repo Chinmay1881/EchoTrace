@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "split": "development",
+  "recordings": [
+    {
+      "recording_id": "background_01",
+      "wav": "recordings/eval/background_01.wav",
+      "sha256": "456676f51bb0c8c9a25976e1321e40e65bcc190afc29ec91cacc52c11b1fcb71",
+      "pcm_sha256": "67422e15887c29c5564d82d93f85237c42d97ae9e9134ac2b333ca8f2254357d",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [],
+      "event_timing": null,
+      "ground_truth_risk": "GREEN",
+      "legacy_annotation": {
+        "clip": "background_01",
+        "wav": "background_01.wav",
+        "expected_pattern": "NONE",
+        "expected_risk": "GREEN",
+        "events": [],
+        "notes": "Quiet room / silence. Expect 0 events."
+      },
+      "annotation_sha256": "e40c2494f05a7a45a38115548ea419b74f887ede540dea369762fe5a635d4c76",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "breakin_01",
+      "wav": "recordings/eval/breakin_01.wav",
+      "sha256": "a372468ab4e180acdda2fa094969c4dd3c5e9f88555cbdbd4b4f2c47ccdd15e9",
+      "pcm_sha256": "59472deabe89db5ff72a0ca8bfe1b40d0c621ee61ec8bf05cb17de0dd7e6e0cf",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS",
+        "IMPACT",
+        "ALARM"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "RED",
+      "legacy_annotation": {
+        "clip": "breakin_01",
+        "wav": "breakin_01.wav",
+        "expected_pattern": "BREAKIN_ALARM",
+        "expected_risk": "RED",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          },
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          },
+          {
+            "category": "ALARM",
+            "zone": "CENTRE"
+          }
+        ],
+        "notes": "Glass clip LEFT -> book drop RIGHT -> alarm clip CENTRE."
+      },
+      "annotation_sha256": "458fa81f83e5fad337d74fae8101bedb9ca23b884e75d4427345df809e94241d",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "breakin_02",
+      "wav": "recordings/eval/breakin_02.wav",
+      "sha256": "aefb5c8caa682480c7c8ab5a0c51a6a3b9096a665fbc1fbb43c8c77f2942c4fd",
+      "pcm_sha256": "94550913c98edb7729c513cdf8cb08c9e29d6dada5f96896cfc60846ed62f07b",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS",
+        "IMPACT",
+        "ALARM"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "RED",
+      "legacy_annotation": {
+        "clip": "breakin_02",
+        "wav": "breakin_02.wav",
+        "expected_pattern": "BREAKIN_ALARM",
+        "expected_risk": "RED",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          },
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          },
+          {
+            "category": "ALARM",
+            "zone": "CENTRE"
+          }
+        ],
+        "notes": "Glass clip LEFT -> book drop RIGHT -> alarm clip CENTRE. Re-recorded: an earlier take clipped and was deleted."
+      },
+      "annotation_sha256": "90c694091b7abaa938d234e16cddf8e4e59de73da8ec03576907115de587c892",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "breakin_03",
+      "wav": "recordings/eval/breakin_03.wav",
+      "sha256": "ef9e9b84a6f37c80d218d070f5946fac84aa8936d8a2064cf0694b83bd001f8c",
+      "pcm_sha256": "86cade0d27734f1b23910d18943b20eccf010203ecc2f68d0fde1c7d63e2c02b",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS",
+        "IMPACT",
+        "ALARM"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "RED",
+      "legacy_annotation": {
+        "clip": "breakin_03",
+        "wav": "breakin_03.wav",
+        "expected_pattern": "BREAKIN_ALARM",
+        "expected_risk": "RED",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          },
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          },
+          {
+            "category": "ALARM",
+            "zone": "CENTRE"
+          }
+        ],
+        "notes": "Glass clip LEFT -> book drop RIGHT -> alarm clip CENTRE."
+      },
+      "annotation_sha256": "cca623291c009ce17a809b369b3d68842aabd95aba7b201bd00d7d4bec99256f",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "breakin_04",
+      "wav": "recordings/eval/breakin_04.wav",
+      "sha256": "52a96f2b73650bac676751294d01945ebc59467612b23893b4926a039bbebbe1",
+      "pcm_sha256": "64a324ce5dec2205016f7c0019d28998c8194fcb057ebf1830f47f1cda694872",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS",
+        "IMPACT",
+        "ALARM"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "RED",
+      "legacy_annotation": {
+        "clip": "breakin_04",
+        "wav": "breakin_04.wav",
+        "expected_pattern": "BREAKIN_ALARM",
+        "expected_risk": "RED",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          },
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          },
+          {
+            "category": "ALARM",
+            "zone": "CENTRE"
+          }
+        ],
+        "notes": "Glass LEFT -> impact RIGHT -> alarm CENTRE. Recorded as demo_backup.wav at 14:30, renamed to breakin_04 (eval only; same audio, same ground truth). The RECORDED backup demo now uses a separate, unlabelled demo_fallback.wav."
+      },
+      "annotation_sha256": "a7ba7627fd69b6a2a676f1cd8045b2429025a0de5bffa3986df6e10e3480ab59",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "chatter_01",
+      "wav": "recordings/eval/chatter_01.wav",
+      "sha256": "7a94bf47a48a56c0fb6c1bfc5484917f7799d62ad0edb3c792a09fe4fd0f6db6",
+      "pcm_sha256": "e94e7eb61a43e1d742add1c2c64ace1516c04cd49cf6781cff2c337fdacaa095",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [],
+      "event_timing": null,
+      "ground_truth_risk": "GREEN",
+      "legacy_annotation": {
+        "clip": "chatter_01",
+        "wav": "chatter_01.wav",
+        "expected_pattern": "NONE",
+        "expected_risk": "GREEN",
+        "events": [],
+        "notes": "Speech only, no target events. Expect 0 events."
+      },
+      "annotation_sha256": "207d1ff104f4c60a1e19a341a1169c0c13f613b1a3d67c7fa2532efdecd3b7cb",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "glass_impact_01",
+      "wav": "recordings/eval/glass_impact_01.wav",
+      "sha256": "ebd3d46d55bf065b4f4a9e303264ad2f6863e8835418f9129651c391f0fdb9a1",
+      "pcm_sha256": "6d268409ffcf34a141d503920a4e6eb4d6047d228ebaa26f1c3d568e7d52b0ba",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS",
+        "IMPACT"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "AMBER",
+      "legacy_annotation": {
+        "clip": "glass_impact_01",
+        "wav": "glass_impact_01.wav",
+        "expected_pattern": "GLASS_IMPACT",
+        "expected_risk": "AMBER",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          },
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          }
+        ],
+        "notes": "Glass clip LEFT -> impact RIGHT, no alarm."
+      },
+      "annotation_sha256": "2223cb02b61040d96461931cee39cbb56333f50b1d2b8aaee3f4044c91e1a66e",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "lone_alarm_01",
+      "wav": "recordings/eval/lone_alarm_01.wav",
+      "sha256": "3db6c2a9f06d69c123bf5044ffbcd51ed5a7e2a80dbb5de6e1681ff219392357",
+      "pcm_sha256": "bc1d85732198b72f0df09d78fc505d82c502a10c35349c6893cc47c81c3b617d",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "ALARM"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "GREEN",
+      "legacy_annotation": {
+        "clip": "lone_alarm_01",
+        "wav": "lone_alarm_01.wav",
+        "expected_pattern": "NONE",
+        "expected_risk": "GREEN",
+        "events": [
+          {
+            "category": "ALARM",
+            "zone": "CENTRE"
+          }
+        ],
+        "notes": "Alarm clip CENTRE only. Should be logged, no alert."
+      },
+      "annotation_sha256": "536ba5f68d9090edc4aefd94f4f7a08e3c42e877c626459f4942187379923084",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "lone_glass_01",
+      "wav": "recordings/eval/lone_glass_01.wav",
+      "sha256": "e34dc789c1a5c7ec1fbc0e164c0aeb6e211ef03c31273a20a89aba96a0d31e13",
+      "pcm_sha256": "1f8be79c6800b96d858a14fcb92da2eba1ba605e2d1b42dbc8467deafe098999",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "GLASS"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "GREEN",
+      "legacy_annotation": {
+        "clip": "lone_glass_01",
+        "wav": "lone_glass_01.wav",
+        "expected_pattern": "NONE",
+        "expected_risk": "GREEN",
+        "events": [
+          {
+            "category": "GLASS",
+            "zone": "LEFT"
+          }
+        ],
+        "notes": "Glass clip LEFT only. Isolated event: should be logged, no alert."
+      },
+      "annotation_sha256": "26c2364a92d0817f45477ca66768bfb89de725a6bd7cfed77ff8ec91cc6aa0c3",
+      "used_for_tuning": true
+    },
+    {
+      "recording_id": "lone_thud_01",
+      "wav": "recordings/eval/lone_thud_01.wav",
+      "sha256": "2d35021db382037d904f99c75805697cce45d4d20bb2a6f3d59618746b842d1a",
+      "pcm_sha256": "793c39a63280e65f1ac24f340713d0c2fef398e4adf65ae52725499819765744",
+      "duration_s": 25.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "source": "self-recorded staged playback (aggregate docs/metrics.md description)",
+      "date": null,
+      "device": null,
+      "environment": null,
+      "category_labels": [
+        "IMPACT"
+      ],
+      "event_timing": null,
+      "ground_truth_risk": "GREEN",
+      "legacy_annotation": {
+        "clip": "lone_thud_01",
+        "wav": "lone_thud_01.wav",
+        "expected_pattern": "NONE",
+        "expected_risk": "GREEN",
+        "events": [
+          {
+            "category": "IMPACT",
+            "zone": "RIGHT"
+          }
+        ],
+        "notes": "Impact RIGHT only (2-3 book drops). Should be logged, no alert."
+      },
+      "annotation_sha256": "2463c45b84cb2cb0550909c40c3406730bae974549fcc566b75322be56883daa",
+      "used_for_tuning": true
+    }
+  ],
+  "missing_fields_note": "Unknown per-recording provenance/timing remains null; not a held-out manifest."
+}
