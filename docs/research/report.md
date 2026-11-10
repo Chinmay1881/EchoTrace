@@ -117,3 +117,43 @@ Benchmark only after a verified pipeline run: instrument preprocessing around `p
 Ten staged clips from one room/device and playback sounds do not establish field generalization. Detection fragments are correlated; confidence strata are selected subsets. No confidence interval computed from 56 emissions would represent independent physical trials. Future independent study should report recording/session-level uncertainty with a preregistered resampling plan and seed (e.g. 0), enough independent sessions, and disclose small strata. No significance, confidence intervals or improved accuracy claimed. Publication-ready baseline table generation is implemented for future runs; no new empirical figures exist to reproduce yet. The scientific evaluation remains incomplete until independent collection, model integration checks, localization analysis, ablations and benchmarking are performed.
 
 Additional collection-lock verification: future evaluation snapshots now include collection-protocol.md, collection-checklist.csv and research_validate.py. The existing comparison/CLI lock regressions were executed again and passed **9 tests** (verification/collection-lock-regression.txt). No model inference was performed: scripted tagger/software fixtures only. A collection-plan-snapshot.json records preparation-time hashes; it is not an evaluated-dataset protocol lock.
+
+## Research format and modality amendment — 10 November 2026
+
+Research-only admission now accepts original signed PCM_16 or PCM_24 WAV/WAVEX
+at 48 kHz with one or two channels. The collection duration remains 25–35 s.
+Explicit evaluation_mode=non-spatial accepts mono and dual-mono for classification
+and temporal correlation with null/omitted ground-truth zones. Localization remains
+the default and requires two channels, rejects exact dual-mono and non-silent
+near-identical channel diagnostics, and still requires human hardware/geometry
+qualification. Distinct channels are reported as stereo-candidate, never proven
+physical stereo. File QC alone leaves spatial_eligible false.
+
+Both actual Audacity pilot files passed non-spatial QC unchanged (exit 0):
+pilot_background_01.wav (PCM_16) and pilot_background_01_24bit.wav (PCM_24), each
+26.17 s, 48 kHz, two identical channels, peak .08306884765625. Both remain rejected
+for localization (exit 2). No model inference or independent evaluation ran.
+These pilot files count as zero independent takes; original acquisition provenance
+is operator-reported and conversion does not create an independent recording.
+
+Research outputs preserve source hash/encoding/channels and suppress spatial
+predictions for non-spatial records. Directional scoring remains unimplemented,
+with denominator explicitly zero. Production inference, preprocessing, weights,
+thresholds, category mappings and temporal rules are unchanged. Independent
+manifest role/annotation/independence checks and frozen-input protection remain;
+additional decoded identities catch lossless bit-depth and duplicated-channel
+variants without changing historical hashes or results. Prior locks would reject
+source drift. All 36 independent recordings, blind timed annotations, provenance,
+capture-integrity evidence and verified physical stereo for localization remain
+pending. Exact commands, schema and limitations: [workflow amendment](collection-workflow.md#research-format-and-modality-amendment--10-november-2026).
+
+Verification for this amendment: full `backend/tests` suite **226 passed, 15
+subtests passed, zero skips, one existing Starlette TestClient deprecation warning**
+in 29.60 s, with OMP/OPENBLAS/MKL threads capped at 2 and normal local networking.
+Both pilot formats are included as optional read-only local-asset regressions;
+portable synthetic software fixtures also cover both bit depths, mono/dual-mono,
+stereo admission, unchanged sources, spatial exclusion, replay/freeze behavior
+and lossless-conversion leakage. No synthetic research recordings were added.
+Protected development audio/labels, docs/metrics.*, config.py and pipeline.py
+match HEAD byte-for-byte. Complete collection preflight remains exit 2: pending
+no independent recordings. No commit or push was performed.

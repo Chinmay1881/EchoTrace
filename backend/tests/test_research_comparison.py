@@ -78,3 +78,16 @@ def test_full_simulated_pipeline_comparison_is_repeatable():
 @pytest.mark.parametrize('time,expected', [(0.999, 0), (1, 1), (5, 1), (5.001, 0)])
 def test_matching_tolerance_boundary(time, expected):
     assert score([{'t': time}], [{'start_s': 2, 'end_s': 4}], 10)['tp'] == expected
+
+
+def test_non_spatial_results_exclude_directions_without_mutating_pipeline():
+    messages, an = replay_fixture([('GLASS', 2), ('IMPACT', 4), ('ALARM', 6)])
+    record = {'recording_id': 'non-spatial-fixture', 'duration_s': 20,
+              'incidents': [], 'evaluation_mode': 'non-spatial'}
+    before = copy.deepcopy(an.events)
+    result = compare_analyzer(messages, an, record)
+    assert result['directional_scoring'] == {'implemented': False, 'denominator': 0}
+    assert all(e[k] is None for e in result['events'] for k in ('zone', 'angle_deg', 'zone_confidence'))
+    assert an.events == before
+    spatial = compare_analyzer(messages, an, {**record, 'evaluation_mode': 'localization'})
+    assert spatial['metrics'] == result['metrics']

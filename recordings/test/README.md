@@ -30,3 +30,9 @@ backend/.venv/bin/python backend/scripts/research_validate.py --require-complete
 ```
 
 This enforces collection format/provenance/scenario rules beyond generic manifest validation. Empty/incomplete collection is not ready. No recordings have been collected as part of preparation.
+
+Research format amendment: original PCM_16 and PCM_24 at 48 kHz are accepted.
+Each record defaults to evaluation_mode=localization; explicit non-spatial mode
+allows mono/dual-mono with null or omitted event zones. Pilot/development records
+remain excluded. See docs/research/collection-workflow.md for exact eligibility,
+provenance, format and directional-scoring limitations.

@@ -1,4 +1,4 @@
-"""Dependency-free infrastructure checks; generated silence is a test fixture only."""
+"""Infrastructure checks; generated silence is a test fixture only."""
 import copy
 import json
 from pathlib import Path
@@ -28,7 +28,7 @@ class InfrastructureTests(unittest.TestCase):
         self.record = {'recording_id': 'fixture', 'wav': 'fixture.wav', 'sha256': sha256(self.wav),
                        'source': 'unit test only', 'date': '2026-11-08', 'device': 'fixture',
                        'environment': 'temporary test', 'annotator': 'test', 'duration_s': 1.0,
-                       'used_for_tuning': False, 'ground_truth_risk': 'GREEN',
+                       'used_for_tuning': False, 'ground_truth_risk': 'GREEN', 'evaluation_mode': 'non-spatial',
                        'category_labels': [], 'events': [], 'incidents': []}
 
     def validate(self, records=None):
@@ -67,7 +67,7 @@ class InfrastructureTests(unittest.TestCase):
 
     def test_benign_multi_event(self):
         self.record['events'] = [{'id': str(i), 'start_s': i / 2, 'end_s': i / 2 + .1,
-                                 'category': cat, 'zone': 'LEFT'} for i, cat in enumerate(['GLASS', 'ALARM'])]
+                                 'category': cat, 'zone': None} for i, cat in enumerate(['GLASS', 'ALARM'])]
         self.record['category_labels'] = ['GLASS', 'ALARM']
         self.validate()
 

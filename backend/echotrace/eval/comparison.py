@@ -10,11 +10,16 @@ def compare_analyzer(messages, analyzer, record, cooldown_s=10.0, tolerance_s=1.
     for event in analyzer.events:
         item = asdict(event)
         item.pop('capture_time')  # monotonic host clock varies between identical offline runs
+        if record.get('evaluation_mode') == 'non-spatial':
+            for key in ('zone', 'angle_deg', 'zone_confidence'):
+                item[key] = None
         item['emitted_s'] = emissions[event.id]
         events.append(item)
     systems = baselines(events, cooldown_s)
     systems['D_EchoTrace'] = [dict(a) for a in analyzer.alerts]
     return {'recording_id': record['recording_id'], 'events': events, 'alerts': systems,
+            'directional_scoring': {'implemented': False, 'denominator': 0},
+            'evaluation_mode': record.get('evaluation_mode', 'localization'),
             'metrics': {name: score(alerts, record['incidents'], record['duration_s'], tolerance_s)
                         for name, alerts in systems.items()}}
 

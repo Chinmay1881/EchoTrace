@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import _bootstrap  # noqa
 from echotrace.eval.dataset import load_manifest, sha256
 from echotrace.eval.comparison import compare_analyzer
+from echotrace.eval.collection import check_wav
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / 'recordings/test/manifest.json'
@@ -89,8 +90,11 @@ def main():
     rows = []
     for record in data['recordings']:
         messages, analyzer = run_wav_detailed(MANIFEST.parent / record['wav'], tagger, keep_frames=False)
-        rows.append(compare_analyzer(messages, analyzer, record, PROTOCOL['cooldown_s'],
-                                     PROTOCOL['matching_tolerance_s']))
+        row = compare_analyzer(messages, analyzer, record, PROTOCOL['cooldown_s'],
+                               PROTOCOL['matching_tolerance_s'])
+        row['audio'] = check_wav(MANIFEST.parent / record['wav'],
+                                record.get('evaluation_mode', 'localization'), collection_duration=False)
+        rows.append(row)
     totals = {}
     for system in rows[0]['metrics']:
         counts = {k: sum(r['metrics'][system][k] for r in rows) for k in ('tp', 'fp', 'fn', 'duplicates')}
