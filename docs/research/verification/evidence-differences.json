@@ -1,0 +1,44 @@
+{
+  "direction_changes": [
+    {
+      "clip": "glass_impact_01",
+      "alignment": "category-order after excluding new DOOR events; old timestamps absent",
+      "archived": "IMPACT@UNKNOWN",
+      "reproduced": {
+        "id": "e2",
+        "category": "IMPACT",
+        "zone": "CENTRE",
+        "confidence": 0.385,
+        "zone_confidence": "low",
+        "label": "Hammer",
+        "t_start": 3.5,
+        "t_end": 4.5
+      }
+    }
+  ],
+  "new_door_events": [
+    {
+      "clip": "breakin_02",
+      "id": "e1",
+      "category": "DOOR",
+      "zone": "CENTRE",
+      "confidence": 0.142,
+      "zone_confidence": "high",
+      "label": "Door",
+      "t_start": 3.0,
+      "t_end": 3.5
+    },
+    {
+      "clip": "glass_impact_01",
+      "id": "e3",
+      "category": "DOOR",
+      "zone": "RIGHT",
+      "confidence": 0.135,
+      "zone_confidence": "low",
+      "label": "Door",
+      "t_start": 7.0,
+      "t_end": 7.5
+    }
+  ],
+  "causal_explanation": "Unresolved. Archived event confidence/times/model/software fingerprints unavailable; no causal numeric-platform claim."
+}

@@ -1,0 +1,16 @@
+{
+  "rubric_id": "echotrace-contextual-proxy-v1",
+  "prepared_at_utc": "2026-11-08T11:21:29.160424+00:00",
+  "status": "preparation only; no test recordings or inference",
+  "note": "Archive this with the capture log before recording. This is a hash inventory, not an evaluated-dataset lock or independent proof of provenance.",
+  "sha256": {
+    "docs/research/collection-protocol.md": "a72c4cc2a79123f462f9ac1fa6522191c802c3fccb0fc23dfd18fc41ce761126",
+    "docs/research/collection-checklist.csv": "6a532a755d5cd7cb397f59173c6ff16a40c92a3fab92152f1445e4285b5e2f72",
+    "docs/research/collection-checklist.md": "af799bb3696d14614d9c4fedfd3e9e28320eba28a96058fa8a179cdfa61ca9ce",
+    "docs/research/collection-workflow.md": "ff1e7d8daef2fc5748d7dd77f3f8df5813570ef9ef0870a7388c8e09afa5bcbf",
+    "backend/echotrace/eval/collection.py": "48bde396d293a46020d5f1c39e065532ab10b7a147149be4511bf5cd948aee76",
+    "backend/scripts/research_validate.py": "6517ad4c16f688d813cf499c420f5948423cc4c0845874c67768de4cc7c324a1",
+    "backend/scripts/research_devices.py": "da9d14e9db4b4709a449fda30648475cd339215983ecb0d8babe9a3b010c6503",
+    "backend/echotrace/config.py": "f9e090403bd09d82be0826ef6f9e5b3f2efba58400a014352c800435ebfd54d6"
+  }
+}

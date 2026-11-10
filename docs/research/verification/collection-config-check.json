@@ -1,0 +1,19 @@
+{
+  "sensitivity": "high",
+  "current_DOOR_high": [
+    0.08,
+    0.04
+  ],
+  "archived_DOOR": [
+    0.2,
+    0.1
+  ],
+  "calibration_file_exists": false,
+  "calibration_sha256": null,
+  "default_calibration": {
+    "sign": -1,
+    "offset": 0.0
+  },
+  "config_sha256": "f9e090403bd09d82be0826ef6f9e5b3f2efba58400a014352c800435ebfd54d6",
+  "pipeline_sha256": "dbea00fb9f203b4e29fd9704af385bac81a2c76d473f42bb2f98a6be888a39c6"
+}

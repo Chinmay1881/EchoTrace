@@ -1,0 +1,29 @@
+s....sss................................................................ [ 36%]
+................................................................ssss.sss [ 73%]
+..........................................sssssssss        [100%]
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] backend/tests/test_categories.py:12: AudioSet label CSV not downloaded
+SKIPPED [1] backend/tests/test_cnn14_smoke.py:29: CNN14 weights not downloaded
+SKIPPED [1] backend/tests/test_cnn14_smoke.py:39: CNN14 weights not downloaded
+SKIPPED [1] backend/tests/test_cnn14_smoke.py:49: CNN14 weights not downloaded
+SKIPPED [3] backend/tests/test_pipeline.py:142: label CSV missing
+SKIPPED [1] backend/tests/test_pipeline.py:164: label CSV missing
+SKIPPED [1] backend/tests/test_pipeline.py:200: label CSV missing
+SKIPPED [1] backend/tests/test_pipeline.py:213: label CSV missing
+SKIPPED [1] backend/tests/test_pipeline.py:226: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:70: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:78: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:86: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:98: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:120: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:143: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:154: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:171: label CSV missing
+SKIPPED [1] backend/tests/test_server.py:177: label CSV missing
+175 passed, 20 skipped, 1 warning, 14 subtests passed in 3.58s

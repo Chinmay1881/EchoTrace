@@ -1,0 +1,69 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.8, pytest-9.2.0, pluggy-1.7.0 -- /workspaces/EchoTrace/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspaces/EchoTrace/backend
+configfile: pytest.ini
+plugins: anyio-4.16.0, platformdirs-4.14.5
+collecting ... collected 9 items
+
+backend/tests/test_server.py::test_status_and_mode Timeout (0:00:20)!
+Thread 0x000072cfe40286c0 (most recent call first):
+  File "/usr/local/python/3.13.8/lib/python3.13/selectors.py", line 452 in select
+  File "/usr/local/python/3.13.8/lib/python3.13/asyncio/base_events.py", line 2012 in _run_once
+  File "/usr/local/python/3.13.8/lib/python3.13/asyncio/base_events.py", line 683 in run_forever
+  File "/usr/local/python/3.13.8/lib/python3.13/asyncio/base_events.py", line 712 in run_until_complete
+  File "/usr/local/python/3.13.8/lib/python3.13/asyncio/runners.py", line 118 in run
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2621 in run
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/_core/_eventloop.py", line 83 in run
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/from_thread.py", line 639 in run_blocking_portal
+  File "/usr/local/python/3.13.8/lib/python3.13/threading.py", line 994 in run
+  File "/usr/local/python/3.13.8/lib/python3.13/threading.py", line 1043 in _bootstrap_inner
+  File "/usr/local/python/3.13.8/lib/python3.13/threading.py", line 1014 in _bootstrap
+
+Thread 0x000072cfef5c2740 (most recent call first):
+  File "/usr/local/python/3.13.8/lib/python3.13/threading.py", line 359 in wait
+  File "/usr/local/python/3.13.8/lib/python3.13/concurrent/futures/_base.py", line 451 in result
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2853 in run_sync_from_thread
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/from_thread.py", line 119 in run_sync
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/from_thread.py", line 310 in _spawn_task_from_thread
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/anyio/from_thread.py", line 485 in start_task_soon
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/starlette/testclient.py", line 571 in __enter__
+  File "/workspaces/EchoTrace/backend/tests/test_server.py", line 63 in client
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 1067 in call_fixture_func
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 1407 in pytest_fixture_setup
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 1301 in execute
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 797 in _get_active_fixturedef
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 701 in getfixturevalue
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/fixtures.py", line 877 in _fillfixtures
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/python.py", line 1801 in setup
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 536 in setup
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 170 in pytest_runtest_setup
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 250 in <lambda>
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 361 in from_call
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 249 in call_and_report
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 132 in runtestprotocol
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/runner.py", line 118 in pytest_runtest_protocol
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/main.py", line 411 in pytest_runtestloop
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/main.py", line 387 in _main
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/main.py", line 333 in wrap_session
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/main.py", line 380 in pytest_cmdline_main
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/config/__init__.py", line 262 in _main
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/_pytest/config/__init__.py", line 286 in _console_main
+  File "/workspaces/EchoTrace/backend/.venv/lib/python3.13/site-packages/pytest/__main__.py", line 9 in <module>
+  File "<frozen runpy>", line 88 in _run_code
+  File "<frozen runpy>", line 198 in _run_module_as_main
